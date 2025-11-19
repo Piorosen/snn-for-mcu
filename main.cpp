@@ -68,14 +68,12 @@ int main()
     std::string dir = "./cifar_bin";
 
     float x[3][32][32];
-    float spikes[30][3][32][32];
+    float spikes[1][3][32][32];
     float spk_out[10];
     float mem_out[10];
     int total_samples  = 0;
     int correct_samples = 0;
 
-
-    snn_reset_state();
 
     // 디렉토리 안의 .bin 파일 순회
     for (const auto& entry : fs::directory_iterator(dir)) {
@@ -91,19 +89,20 @@ int main()
         if (!load_cifar_bin(filepath, x)) {
             continue;
         }
-        spiking_rate(
-            (const float*)x,
-            (float*)spikes,  // 임시로 spikes에 스파이크 저장
-            30, 1, 3, 32, 32,
-            1, 0, 0
-        );
 
         // 한 타임스텝 forward
         snn_reset_state();
 
         for (int t = 0; t < 30; ++t) {
+            spiking_rate(
+                (const float*)x,
+                (float*)spikes,  // 임시로 spikes에 스파이크 저장
+                t, 30, 1, 3, 32, 32,
+                1, 0
+            );
+
             // spikes[t] -> [3][32][32] 라고 가정
-            snn_forward_step((const float (*)[32][32])spikes[t], spk_out, mem_out);
+            snn_forward_step((const float (*)[32][32])spikes, spk_out, mem_out);
 
             // 이번 타임스텝 스파이크를 calc에 누적
             for (int i = 0; i < 10; ++i) {
