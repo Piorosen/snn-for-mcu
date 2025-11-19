@@ -10,21 +10,19 @@
 
 /* Conv1 출력: [32, 32, 32] */
 
-
-
-static uint16_t g_lif1_mem[32][16][16];
-static uint16_t g_lif1_spk_prev[32][16][16];
-static uint16_t g_lif2_mem[64][8][8];
-static uint16_t g_lif2_spk_prev[64][8][8];
-static uint16_t g_lif_out_mem[10];
-static uint16_t g_lif_out_spk_prev[10];
+static float g_lif1_mem[32][16][16];
+static float g_lif1_spk_prev[32][16][16];
+static float g_lif2_mem[64][8][8];
+static float g_lif2_spk_prev[64][8][8];
+static float g_lif_out_mem[10];
+static float g_lif_out_spk_prev[10];
 
 
 /* --------- 유틸: 0으로 초기화 --------- */
 void spiking_rate(
     const float* data,
     float* spikes,
-	int i,
+	int index,
     int T, int B, int C, int H, int W,
     float gain,
     float offset
@@ -160,7 +158,7 @@ void avgpool2d_2x2_s2_forward(int C, int H, int W,
 void avgpool2d_2x2_32x32(const float* in,// [32][32][32],
                                 float* out)//[32][16][16])
 {
-	avgpool2d_2x2_s2_forward(16,32,32, (float*)in, (float*)out);
+	avgpool2d_2x2_s2_forward(32,32,32, (float*)in, (float*)out);
 }
 
 /* --------- AvgPool2D(2x2, stride=2), Conv2 출력용 --------- */
@@ -168,7 +166,7 @@ void avgpool2d_2x2_32x32(const float* in,// [32][32][32],
 void avgpool2d_2x2_16x16(const float* in,//[64][16][16],
                                 float* out) // [64][8][8])
 {
-	avgpool2d_2x2_s2_forward(32,16,16, (float*)in, (float*)out);
+	avgpool2d_2x2_s2_forward(64,16,16, (float*)in, (float*)out);
 }
 
 // /* --------- Flatten: [64][8][8] -> [4096] --------- */
@@ -203,23 +201,21 @@ void linear_fc_4096_10(const float* in,
 /* LIF1: 입력 in[32][16][16], 출력 spk_out[32][16][16] (spk_prev 출력) */
 
 void lif1_step(const float in[32][16][16],
-                      float spk_out[32][16][16])
+               float spk_out[32][16][16])
 {
     for (int c = 0; c < 32; ++c) {
         for (int h = 0; h < 16; ++h) {
             for (int w = 0; w < 16; ++w) {
-                uint16_t mem_prev = g_lif1_mem[c][h][w];
-                uint16_t spk_prev = g_lif1_spk_prev[c][h][w];
+                float mem_prev = g_lif1_mem[c][h][w];
+                float spk_prev = g_lif1_spk_prev[c][h][w];
 
-                uint16_t mem_tilde = snn_lif1_beta * mem_prev + (in[c][h][w] * 10000);
-                uint16_t spk_raw   = (mem_tilde >= (snn_lif1_threshold * 10000)) ? 1.0f : 0.0f;
-                uint16_t mem_next  = mem_tilde - spk_raw * (snn_lif1_threshold * 10000);
+                float mem_tilde = snn_lif1_beta * mem_prev + in[c][h][w];
+                float spk_raw   = (mem_tilde >= snn_lif1_threshold) ? 1.0f : 0.0f;
+                float mem_next  = mem_tilde - spk_raw * snn_lif1_threshold;
 
-                /* reset_delay=True 이므로 출력은 이전 스파이크 */
                 spk_out[c][h][w] = spk_prev;
 
-                /* 다음 타임스텝을 위해 상태 업데이트 */
-                g_lif1_spk_prev[c][h][w] = spk_raw;   // graded_spikes_factor=1
+                g_lif1_spk_prev[c][h][w] = spk_raw;
                 g_lif1_mem[c][h][w]      = mem_next;
             }
         }
@@ -234,12 +230,12 @@ void lif2_step(const float in[64][8][8],
     for (int c = 0; c < 64; ++c) {
         for (int h = 0; h < 8; ++h) {
             for (int w = 0; w < 8; ++w) {
-            	uint16_t mem_prev = g_lif2_mem[c][h][w];
-            	uint16_t spk_prev = g_lif2_spk_prev[c][h][w];
+            	float mem_prev = g_lif2_mem[c][h][w];
+            	float spk_prev = g_lif2_spk_prev[c][h][w];
 
-            	uint16_t mem_tilde = snn_lif2_beta * mem_prev + (in[c][h][w] * 10000);
-                uint16_t spk_raw   = (mem_tilde >= (snn_lif2_threshold * 10000)) ? 1.0f : 0.0f;
-                uint16_t mem_next  = mem_tilde - spk_raw * (snn_lif2_threshold * 10000);
+            	float mem_tilde = snn_lif2_beta * mem_prev + (in[c][h][w]);
+                float spk_raw   = (mem_tilde >= (snn_lif2_threshold)) ? 1.0f : 0.0f;
+                float mem_next  = mem_tilde - spk_raw * (snn_lif2_threshold);
 
                 spk_out[c][h][w] = spk_prev;
 
@@ -257,12 +253,12 @@ void lif_out_step(const float in[10],
                          float mem_out[10])
 {
     for (int i = 0; i < 10; ++i) {
-    	uint16_t mem_prev = g_lif_out_mem[i];
-    	uint16_t spk_prev = g_lif_out_spk_prev[i];
+    	float mem_prev = g_lif_out_mem[i];
+    	float spk_prev = g_lif_out_spk_prev[i];
 
-    	uint16_t mem_tilde = snn_lif_out_beta * mem_prev + (in[i] * 10000);
-        uint16_t spk_raw   = (mem_tilde >= (snn_lif_out_threshold * 10000)) ? 1.0f : 0.0f;
-        uint16_t mem_next  = mem_tilde - spk_raw * (snn_lif_out_threshold * 10000);
+    	float mem_tilde = snn_lif_out_beta * mem_prev + (in[i]);
+        float spk_raw   = (mem_tilde >= (snn_lif_out_threshold)) ? 1.0f : 0.0f;
+        float mem_next  = mem_tilde - spk_raw * (snn_lif_out_threshold);
 
         spk_out[i] = spk_prev;
         mem_out[i] = mem_next;
@@ -290,8 +286,8 @@ void snn_forward_step(const float x[3][32][32],
                       float spk_out[10],
                       float mem_out[10])
 {
-	float in_buffer1[32][32][32];
-	float in_buffer2[32][16][16];
+	float in_buffer1[64][32][32];
+	float in_buffer2[64][32][32];
 
     /* Conv1 */
     conv1_forward(x, in_buffer1);

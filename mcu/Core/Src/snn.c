@@ -24,7 +24,7 @@ static uint16_t g_lif_out_spk_prev[10];
 void spiking_rate(
     const float* data,
     float* spikes,
-	int i,
+	int index,
     int T, int B, int C, int H, int W,
     float gain,
     float offset
