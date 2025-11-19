@@ -120,3 +120,5 @@ axes[1].legend(loc="upper left", ncol=2, fontsize=8)
 plt.tight_layout()
 plt.show()
 
+
+# %%
