@@ -1,3 +1,4 @@
+#%%
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -18,7 +19,7 @@ from snntorch import spikegen   # ✅ 인코딩용 추가
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 batch_size = 128
-num_epochs = 5
+num_epochs = 100
 num_steps = 30       # ✅ 타임스텝 30
 beta = 0.9
 lr = 2e-3
@@ -55,7 +56,6 @@ net = nn.Sequential(
     nn.Conv2d(32, 64, 5, padding=2),
     nn.AvgPool2d(2),  # 16x16 -> 8x8
     snn.Leaky(beta=beta, spike_grad=spike_grad, init_hidden=True),
-
     nn.Flatten(),           # [B, 64*8*8]
     nn.Linear(64 * 8 * 8, 10),
     # 마지막 레이어: spikes와 membrane state를 모두 반환
@@ -97,30 +97,6 @@ def forward_pass(net, data, num_steps):
 loss_fn = SF.ce_rate_loss()
 optimizer = torch.optim.Adam(net.parameters(), lr=lr, betas=(0.9, 0.999))
 
-for epoch in range(num_epochs):
-    net.train()
-    running_loss = 0.0
-
-    for i, (data, targets) in enumerate(train_loader):
-        data = data.to(device)
-        targets = targets.to(device)
-
-        spk_rec, mem_rec = forward_pass(net, data, num_steps)  # ✅ num_steps=30
-        loss = loss_fn(spk_rec, targets)
-
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
-        running_loss += loss.item()
-
-        if (i + 1) % 50 == 0:
-            print(f"[Epoch {epoch+1}/{num_epochs}] "
-                  f"Iter {i+1}/{len(train_loader)} "
-                  f"Loss: {running_loss / 50:.4f}")
-            running_loss = 0.0
-
-
 
 def evaluate(net, loader, num_steps):
     net.eval()
@@ -143,4 +119,35 @@ def evaluate(net, loader, num_steps):
     print(f"Test Accuracy: {acc:.2f}%")
     return acc
 
-test_acc = evaluate(net, test_loader, num_steps)   # ✅ num_steps=30
+#%%
+
+for epoch in range(num_epochs):
+    net.train()
+    running_loss = 0.0
+
+    for i, (data, targets) in enumerate(train_loader):
+        data = data.to(device)
+        targets = targets.to(device)
+
+        spk_rec, mem_rec = forward_pass(net, data, num_steps)  # ✅ num_steps=30
+        loss = loss_fn(spk_rec, targets)
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        running_loss += loss.item()
+
+        if (i + 1) % 50 == 0:
+            print(f"[Epoch {epoch+1}/{num_epochs}] "
+                  f"Iter {i+1}/{len(train_loader)} "
+                  f"Loss: {running_loss / 50:.4f}")
+            running_loss = 0.0
+    test_acc = evaluate(net, test_loader, num_steps)   # ✅ num_steps=30
+    torch.save(net.state_dict(), f"acc{int(test_acc)}_{epoch+1:04}_snn_cifar10.pth")
+
+
+
+
+
+# %%

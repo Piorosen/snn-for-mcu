@@ -34,7 +34,6 @@ net = nn.Sequential(
     nn.Conv2d(32, 64, 5, padding=2),
     nn.AvgPool2d(2),  # 16x16 -> 8x8
     snn.Leaky(beta=beta, spike_grad=spike_grad, init_hidden=True),
-
     nn.Flatten(),           # [B, 64*8*8]
     nn.Linear(64 * 8 * 8, 10),
     # 마지막 레이어: spikes와 membrane state를 모두 반환

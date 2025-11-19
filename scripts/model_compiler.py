@@ -57,6 +57,56 @@ def numpy_shape_to_c_dims(arr):
     arr = np.asarray(arr)
     return "".join(f"[{d}]" for d in arr.shape)
 
+def numpy_array_to_c_int8(name, arr):
+    """
+    name : C 변수 이름 (예: "snn_conv1_weight_q")
+    arr  : numpy 배열 (float32 등)
+    반환 : int8_t 배열 + scale 을 담은 C 코드 문자열
+    """
+    import numpy as np
+
+    arr = np.asarray(arr, dtype=np.float32)
+    shape = arr.shape
+
+    # scale 계산 (대칭 양자화)
+    max_abs = np.max(np.abs(arr))
+    if max_abs == 0.0:
+        scale = 1.0  # 전부 0이면 아무 scale 이나 상관 없음
+    else:
+        # float ≈ int8 * scale  (int8 범위: [-128, 127])
+        scale = max_abs / 127.0
+
+    # 양자화: q = round(x / scale), [-128, 127] 클리핑
+    q = np.round(arr / scale).astype(np.int32)
+    q = np.clip(q, -128, 127).astype(np.int8)
+
+    dim_str = "".join(f"[{d}]" for d in shape)
+
+    lines = []
+    # int8_t 배열
+    lines.append(f"const int8_t {name}{dim_str} = {{")
+
+    flat = q.flatten()
+    per_line = 16
+    line = "    "
+    for i, v in enumerate(flat):
+        line += f"{int(v)}"
+        if i != len(flat) - 1:
+            line += ", "
+        if (i + 1) % per_line == 0:
+            lines.append(line)
+            line = "    "
+    if line.strip():
+        lines.append(line)
+
+    lines.append("};")
+    lines.append("")
+    # dequantization 용 scale 상수 (float)
+    lines.append(f"const float {name}_scale = {scale:.8f}f;")
+    lines.append("")
+
+    return "\n".join(lines)
+
 
 def numpy_array_to_c(name, arr, dtype="float"):
     """
@@ -104,31 +154,31 @@ def export_snn_to_c(np_net, var_prefix="snn"):
     parts = []
 
     # Conv1
-    parts.append(numpy_array_to_c(
+    parts.append(numpy_array_to_c_int8(
         f"{var_prefix}_conv1_weight",
         np_net.conv1.weight
     ))
-    parts.append(numpy_array_to_c(
+    parts.append(numpy_array_to_c_int8(
         f"{var_prefix}_conv1_bias",
         np_net.conv1.bias
     ))
 
     # Conv2
-    parts.append(numpy_array_to_c(
+    parts.append(numpy_array_to_c_int8(
         f"{var_prefix}_conv2_weight",
         np_net.conv2.weight
     ))
-    parts.append(numpy_array_to_c(
+    parts.append(numpy_array_to_c_int8(
         f"{var_prefix}_conv2_bias",
         np_net.conv2.bias
     ))
 
     # FC
-    parts.append(numpy_array_to_c(
+    parts.append(numpy_array_to_c_int8(
         f"{var_prefix}_fc_weight",
         np_net.fc.weight
     ))
-    parts.append(numpy_array_to_c(
+    parts.append(numpy_array_to_c_int8(
         f"{var_prefix}_fc_bias",
         np_net.fc.bias
     ))
@@ -158,7 +208,10 @@ def export_snn_to_c(np_net, var_prefix="snn"):
 
 def export_snn_to_h(np_net, var_prefix="snn", header_guard="SNN_WEIGHTS_H"):
     """
-    NumpySNN(np_net)을 C 헤더(.h)용 extern 선언 코드로 변환
+    NumpySNN(np_net)을 C 헤더(.h)용 extern 선언 코드로 변환.
+    int8 대칭 양자화(per-tensor) 사용:
+      float ≈ int8 * scale
+    각 weight/bias 에 대해 int8 배열 + float scale 를 extern 으로 선언.
     """
 
     parts = []
@@ -167,38 +220,51 @@ def export_snn_to_h(np_net, var_prefix="snn", header_guard="SNN_WEIGHTS_H"):
     parts.append("")
     parts.append("#include <stdint.h>")
     parts.append("")
-    parts.append("/* Auto-generated SNN weight declarations */")
+    parts.append("/* Auto-generated SNN weight declarations (int8 quantized) */")
+    parts.append("/* Quantization: per-tensor symmetric, float ~= int8 * scale */")
     parts.append("")
 
     # --- Conv1 ---
     conv1_w_dims = numpy_shape_to_c_dims(np_net.conv1.weight)
     conv1_b_dims = numpy_shape_to_c_dims(np_net.conv1.bias)
     parts.append(
-        f"extern const float {var_prefix}_conv1_weight{conv1_w_dims};")
+        f"extern const int8_t {var_prefix}_conv1_weight{conv1_w_dims};")
     parts.append(
-        f"extern const float {var_prefix}_conv1_bias{conv1_b_dims};")
+        f"extern const float {var_prefix}_conv1_weight_scale;")
+    parts.append(
+        f"extern const int8_t {var_prefix}_conv1_bias{conv1_b_dims};")
+    parts.append(
+        f"extern const float {var_prefix}_conv1_bias_scale;")
     parts.append("")
 
     # --- Conv2 ---
     conv2_w_dims = numpy_shape_to_c_dims(np_net.conv2.weight)
     conv2_b_dims = numpy_shape_to_c_dims(np_net.conv2.bias)
     parts.append(
-        f"extern const float {var_prefix}_conv2_weight{conv2_w_dims};")
+        f"extern const int8_t {var_prefix}_conv2_weight{conv2_w_dims};")
     parts.append(
-        f"extern const float {var_prefix}_conv2_bias{conv2_b_dims};")
+        f"extern const float {var_prefix}_conv2_weight_scale;")
+    parts.append(
+        f"extern const int8_t {var_prefix}_conv2_bias{conv2_b_dims};")
+    parts.append(
+        f"extern const float {var_prefix}_conv2_bias_scale;")
     parts.append("")
 
     # --- FC ---
     fc_w_dims = numpy_shape_to_c_dims(np_net.fc.weight)
     fc_b_dims = numpy_shape_to_c_dims(np_net.fc.bias)
     parts.append(
-        f"extern const float {var_prefix}_fc_weight{fc_w_dims};")
+        f"extern const int8_t {var_prefix}_fc_weight{fc_w_dims};")
     parts.append(
-        f"extern const float {var_prefix}_fc_bias{fc_b_dims};")
+        f"extern const float {var_prefix}_fc_weight_scale;")
+    parts.append(
+        f"extern const int8_t {var_prefix}_fc_bias{fc_b_dims};")
+    parts.append(
+        f"extern const float {var_prefix}_fc_bias_scale;")
     parts.append("")
 
-    # --- LIF parameters (scalar) ---
-    parts.append("// LIF parameters")
+    # --- LIF parameters (scalar, float 그대로) ---
+    parts.append("// LIF parameters (not quantized)")
     parts.append(
         f"extern const float {var_prefix}_lif1_beta;")
     parts.append(
@@ -237,9 +303,25 @@ net = nn.Sequential(
     snn.Leaky(beta=beta, spike_grad=spike_grad,
               init_hidden=True, output=True)
 )
+# net = nn.Sequential(
+#     # 입력: [B, 3, 32, 32]
+#     nn.Conv2d(3, 16, 5, padding=2),
+#     nn.AvgPool2d(2),  # 32x32 -> 16x16
+#     snn.Leaky(beta=beta, spike_grad=spike_grad, init_hidden=True),
+
+#     nn.Conv2d(16, 32, 5, padding=2),
+#     nn.AvgPool2d(2),  # 16x16 -> 8x8
+#     snn.Leaky(beta=beta, spike_grad=spike_grad, init_hidden=True),
+
+#     nn.Flatten(),           # [B, 32*8*8]
+#     nn.Linear(32 * 8 * 8, 10),
+#     # 마지막 레이어: spikes와 membrane state를 모두 반환
+#     snn.Leaky(beta=beta, spike_grad=spike_grad,
+#               init_hidden=True, output=True)
+# )
 
 utils.reset(net)
-net.load_state_dict(torch.load("snn_cifar10.pth"))
+net.load_state_dict(torch.load("/home/chacha/Desktop/git/snn-for-mcu/resources/acc44_snn_cifar10.pth"))
 net.eval()
 
 # 1) Torch 모델 → NumpySNN
