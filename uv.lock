@@ -21,6 +21,24 @@ wheels = [
 ]
 
 [[package]]
+name = "brevitas"
+version = "0.10.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "dependencies" },
+    { name = "packaging" },
+    { name = "setuptools" },
+    { name = "sympy" },
+    { name = "torch" },
+    { name = "typing-extensions" },
+    { name = "unfoldnd" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/96/c8/73ddf09c4d7475137470aee37d2424f8af45c33d3f58c13b7f6480ec4b67/brevitas-0.10.2.tar.gz", hash = "sha256:e49c2f1fdd9e69ecdf82bb0f6d205f6100966a8e99fa1e1b345a51acaeafe9bd", size = 518840, upload-time = "2024-02-19T16:42:42.624Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a3/df/f2964ce9f27b9699a65c9f93900a45c0c5be65a97588c86fb16a6736159e/brevitas-0.10.2-py3-none-any.whl", hash = "sha256:3488129e40496034b406b90ab2f15484527854ed4cecd79d4c07849e8caff1e0", size = 626551, upload-time = "2024-02-19T16:42:40.018Z" },
+]
+
+[[package]]
 name = "cffi"
 version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -198,6 +216,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/43/fa/6d96a0978d19e17b68d634497769987b16c8f4cd0a7a05048bec693caa6b/decorator-5.2.1.tar.gz", hash = "sha256:65f266143752f734b0a7cc83c46f4618af75b8c5911b00ccb61d0ac9b6da0360", size = 56711, upload-time = "2025-02-24T04:41:34.073Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4e/8c/f3147f5c4b73e7550fe5f9352eaa956ae838d5c51eb58e7a25b9f3e2643b/decorator-5.2.1-py3-none-any.whl", hash = "sha256:d316bb415a2d9e2d2b3abcc4084c6502fc09240e292cd76a76afc106a1c8e04a", size = 9190, upload-time = "2025-02-24T04:41:32.565Z" },
+]
+
+[[package]]
+name = "dependencies"
+version = "2.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/cb/c8/8d296cc25e199183233f7eb79d8bd80598484491b7200d0a5407af285000/dependencies-2.0.1.tar.gz", hash = "sha256:89f8262059ee6fb7a27f12bc72cec41e4a954a7b6f5ba0b4c902be1495e1cd12", size = 10320, upload-time = "2020-07-16T12:58:56.48Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a6/b7/d07e44c49429eba1c2eeffbde551a9ea3838c5ab34fafd544999fd4f925e/dependencies-2.0.1-py2.py3-none-any.whl", hash = "sha256:4f2acdafd3f17f20b717e0691f5652d01bb1099f9d851926e7d2913bff299c61", size = 15330, upload-time = "2020-07-16T12:58:55.563Z" },
 ]
 
 [[package]]
@@ -1189,6 +1216,7 @@ name = "snn-for-mcu"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "brevitas" },
     { name = "h5py" },
     { name = "ipykernel" },
     { name = "matplotlib" },
@@ -1204,6 +1232,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "brevitas", specifier = ">=0.10.2" },
     { name = "h5py", specifier = ">=3.15.1" },
     { name = "ipykernel", specifier = ">=7.1.0" },
     { name = "matplotlib", specifier = ">=3.10.7" },
@@ -1404,6 +1433,20 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/95/32/1a225d6164441be760d75c2c42e2780dc0873fe382da3e98a2e1e48361e5/tzdata-2025.2.tar.gz", hash = "sha256:b60a638fcc0daffadf82fe0f57e53d06bdec2f36c4df66280ae79bce6bd6f2b9", size = 196380, upload-time = "2025-03-23T13:54:43.652Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5c/23/c7abc0ca0a1526a0774eca151daeb8de62ec457e77262b66b359c3c7679e/tzdata-2025.2-py2.py3-none-any.whl", hash = "sha256:1a403fada01ff9221ca8044d701868fa132215d84beb92242d9acd2147f667a8", size = 347839, upload-time = "2025-03-23T13:54:41.845Z" },
+]
+
+[[package]]
+name = "unfoldnd"
+version = "0.2.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "packaging" },
+    { name = "torch" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/12/59/c7b37eb01a339900eedce92947ab43da467f910e3e18d796096dac9b6097/unfoldnd-0.2.3.tar.gz", hash = "sha256:f5b5121d05dafdd70e873ac64a3ecdadfc4c0e8840a0facc86986ede664ab188", size = 18699, upload-time = "2024-12-30T19:43:26.643Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/34/0a/2220291f3a9cafdfd52a7fc42ba012fce9e8ae3d89ee726ad27188d5d63a/unfoldNd-0.2.3-py3-none-any.whl", hash = "sha256:62e9cc35b152b916204b900a3989f3637baf7bd359fdfe32295e817e3b81229c", size = 16822, upload-time = "2024-12-30T19:43:24.82Z" },
 ]
 
 [[package]]
