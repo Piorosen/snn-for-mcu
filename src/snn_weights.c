@@ -1,6 +1,6 @@
 /* auto-generated SNN weights (definition) */
 
-#include "snn_weights.h"
+#include <snn_weights.h>
 
 const float snn_conv1_weight[32][3][5][5] = {
     0.08427685f, 0.10984984f, 0.02557801f, -0.12184340f, -0.04692298f, 0.03673805f, 0.03330825f, -0.10161350f, 

@@ -7,6 +7,10 @@
 
 /* Auto-generated SNN weight declarations */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern const float snn_conv1_weight[32][3][5][5];
 extern const float snn_conv1_bias[32];
 
@@ -23,5 +27,9 @@ extern const float snn_lif_out_beta;
 extern const float snn_lif1_threshold;
 extern const float snn_lif2_threshold;
 extern const float snn_lif_out_threshold;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SNN_WEIGHTS_H */

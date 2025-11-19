@@ -12,6 +12,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(SOURCES
     main.cpp
     src/snn_weights.c
+    src/snn.c
 )
 
 set(HEADERS
