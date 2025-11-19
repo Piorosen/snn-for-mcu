@@ -218,3 +218,51 @@ class LeakyNP:
 
     def forward(self, input_, mem=None, spk_prev=None):
         return self.step(input_, mem=mem, spk_prev=spk_prev)
+
+class NumpySNN:
+    """
+    PyTorch net_torch와 같은 구조:
+    Conv2D -> AvgPool2D -> LeakyNP ->
+    Conv2D -> AvgPool2D -> LeakyNP ->
+    Flatten -> Linear -> LeakyNP (output=True)
+    """
+    def __init__(self, beta=0.9):
+        self.conv1 = Conv2D(3, 32, kernel_size=5, padding=2)
+        self.pool1 = AvgPool2D(2)
+        self.lif1  = LeakyNP(beta=beta, init_hidden=True, reset_mechanism="subtract")
+
+        self.conv2 = Conv2D(32, 64, kernel_size=5, padding=2)
+        self.pool2 = AvgPool2D(2)
+        self.lif2  = LeakyNP(beta=beta, init_hidden=True, reset_mechanism="subtract")
+
+        self.flatten = Flatten()
+        self.fc      = Linear(64 * 8 * 8, 10)
+        self.lif_out = LeakyNP(beta=beta, init_hidden=True, reset_mechanism="subtract")
+
+    def reset_state(self):
+        self.lif1.reset_state()
+        self.lif2.reset_state()
+        self.lif_out.reset_state()
+
+    def forward_step(self, x_np):
+        """
+        한 타임스텝용 forward.
+        x_np: [B, 3, 32, 32] NumPy 배열 (spike 입력)
+        return: spk_out, mem_out (마지막 레이어 기준)
+        """
+        # 첫 블록
+        z = self.conv1.forward(x_np)
+        z = self.pool1.forward(z)
+        spk1, _ = self.lif1.forward(z)
+
+        # 두 번째 블록
+        z = self.conv2.forward(spk1)
+        z = self.pool2.forward(z)
+        spk2, _ = self.lif2.forward(z)
+
+        # FC + 마지막 Leaky
+        z = self.flatten.forward(spk2)
+        z = self.fc.forward(z)
+        spk_out, mem_out = self.lif_out.forward(z)
+
+        return spk_out, mem_out

@@ -11,15 +11,6 @@ from snntorch import spikegen   # ✅ 인코딩용 추가
 from chacha_py import rate_numpy
 import numpy as np
 
-transform = transforms.Compose([
-    transforms.ToTensor(),  # 0~1
-])
-
-train_dataset = datasets.CIFAR10(
-    root="./data", train=True, download=True, transform=transform
-)
-
-
 beta = 0.9
 num_steps = 30
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -41,12 +32,60 @@ net = nn.Sequential(
     snn.Leaky(beta=beta, spike_grad=spike_grad,
               init_hidden=True, output=True)
 )
-
 utils.reset(net)
 net.load_state_dict(torch.load("snn_cifar10.pth"))
 net.eval()
-#%%
-from chacha_py import NumpySNN, rate_numpy
+
+net.compile()
+
+from chacha_py import Conv2D, AvgPool2D, LeakyNP, Flatten, Linear, rate_numpy
+class NumpySNN:
+    """
+    PyTorch net_torch와 같은 구조:
+    Conv2D -> AvgPool2D -> LeakyNP ->
+    Conv2D -> AvgPool2D -> LeakyNP ->
+    Flatten -> Linear -> LeakyNP (output=True)
+    """
+    def __init__(self, beta=0.9):
+        self.conv1 = Conv2D(3, 32, kernel_size=5, padding=2)
+        self.pool1 = AvgPool2D(2)
+        self.lif1  = LeakyNP(beta=beta, init_hidden=True, reset_mechanism="subtract")
+
+        self.conv2 = Conv2D(32, 64, kernel_size=5, padding=2)
+        self.pool2 = AvgPool2D(2)
+        self.lif2  = LeakyNP(beta=beta, init_hidden=True, reset_mechanism="subtract")
+
+        self.flatten = Flatten()
+        self.fc      = Linear(64 * 8 * 8, 10)
+        self.lif_out = LeakyNP(beta=beta, init_hidden=True, reset_mechanism="subtract")
+
+    def reset_state(self):
+        self.lif1.reset_state()
+        self.lif2.reset_state()
+        self.lif_out.reset_state()
+
+    def forward_step(self, x_np):
+        """
+        한 타임스텝용 forward.
+        x_np: [B, 3, 32, 32] NumPy 배열 (spike 입력)
+        return: spk_out, mem_out (마지막 레이어 기준)
+        """
+        # 첫 블록
+        z = self.conv1.forward(x_np)
+        z = self.pool1.forward(z)
+        spk1, _ = self.lif1.forward(z)
+
+        # 두 번째 블록
+        z = self.conv2.forward(spk1)
+        z = self.pool2.forward(z)
+        spk2, _ = self.lif2.forward(z)
+
+        # FC + 마지막 Leaky
+        z = self.flatten.forward(spk2)
+        z = self.fc.forward(z)
+        spk_out, mem_out = self.lif_out.forward(z)
+
+        return spk_out, mem_out
 
 #%%
 def build_numpy_snn_from_torch(net_torch, beta=0.5):
@@ -87,24 +126,4 @@ def build_numpy_snn_from_torch(net_torch, beta=0.5):
 #%%
 np_snn = build_numpy_snn_from_torch(net, beta=beta)
 
-train_dataset = datasets.CIFAR10(
-    root="./data", train=True, download=True, transform=transform
-)
-#%%
 
-img, label = train_dataset[1]
-img = img.unsqueeze(0)
-data_spk = rate_numpy(img, num_steps=num_steps)
-spk_rec = []
-for step in range(num_steps):
-    spk_out, mem_out = np_snn.forward_step(data_spk[step])
-    spk_rec.append(spk_out)
-    
-print(sum(spk_rec), label)
-# %%
-
-
-
-
-
-# %%

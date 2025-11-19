@@ -41,10 +41,86 @@ net = nn.Sequential(
     snn.Leaky(beta=beta, spike_grad=spike_grad,
               init_hidden=True, output=True)
 )
-
 utils.reset(net)
 net.load_state_dict(torch.load("snn_cifar10.pth"))
 net.eval()
+
+net.compile()
+#%%
+
+def summarize_model(model: nn.Module, input_size, device="cpu"):
+    """
+    input_size: (C, H, W) 또는 (features,) 처럼 '배치 제외' 크기
+    예) 이미지: (3, 224, 224)
+        MLP:   (100,)
+    """
+    model = model.to(device)
+    model.eval()
+
+    summary = []
+    hooks = []
+
+    def hook(module, input, output):
+        # 모듈 이름
+        class_name = module.__class__.__name__
+        idx = len(summary)
+        layer_name = f"{class_name}-{idx}"
+
+        def get_shape(x):
+            if isinstance(x, torch.Tensor):
+                return list(x.shape)
+            elif isinstance(x, (list, tuple)):
+                return [list(t.shape) for t in x if isinstance(t, torch.Tensor)]
+            else:
+                return str(type(x))
+
+        # input, output은 튜플일 수 있음
+        in_obj = input[0] if isinstance(input, (list, tuple)) and len(input) > 0 else input
+        out_obj = output
+
+        summary.append({
+            "layer": layer_name,
+            "input_shape": get_shape(in_obj),
+            "output_shape": get_shape(out_obj),
+        })
+
+    # leaf 모듈(실제 연산하는 레이어)들만 hook
+    for name, module in model.named_modules():
+        # 자식 모듈 있으면 container로 보고 skip
+        if len(list(module.children())) > 0:
+            continue
+        hooks.append(module.register_forward_hook(hook))
+
+    # 더미 입력 생성 (batch size = 1)
+    x = torch.randn(input_size).to(device)
+
+    with torch.no_grad():
+        _ = model(x)
+
+    # hook 제거
+    for h in hooks:
+        h.remove()
+
+    return summary
+
+
+def print_summary(summary):
+    print("{:<25} {:<35} {:<35}".format("Layer", "Input shape", "Output shape"))
+    print("-" * 100)
+    for item in summary:
+        print(
+            "{:<25} {:<35} {:<35}".format(
+                item["layer"],
+                str(item["input_shape"]),
+                str(item["output_shape"]),
+            )
+        )
+        
+    
+model_summary = summarize_model(net, input_size=(1, 3, 32, 32), device=device)
+print_summary(model_summary)
+
+#%%
 #%%
 from chacha_py import Conv2D, AvgPool2D, LeakyNP, Flatten, Linear, rate_numpy
 class NumpySNN:
@@ -142,6 +218,8 @@ train_dataset = datasets.CIFAR10(
 img, label = train_dataset[0]
 img = img.unsqueeze(0)
 data_spk = rate_numpy(img, num_steps=num_steps)
+#%%
+data_spk.shape
 #%%
 spk_rec = []
 for step in range(num_steps):
