@@ -49,31 +49,14 @@ test_loader = DataLoader(test_dataset, batch_size=batch_size,
 spike_grad = surrogate.fast_sigmoid()
 
 net = nn.Sequential(
-    # 입력: [B, 3, 32, 32]
-    # nn.Conv2d(3, 32, 5, padding=2),
-    qnn.QuantConv2d(  # Conv2d 양자화 버전
-        3, 32, 5, padding=2,
-        weight_bit_width=8,  # 8-bit weight
-        bias=True
-    ),
-    nn.AvgPool2d(2),  # 32x32 -> 16x16
+    qnn.QuantConv2d(3, 32, 5, padding=2, weight_bit_width=8, bias=True),
+    nn.AvgPool2d(2),  
     snn.Leaky(beta=beta, spike_grad=spike_grad, init_hidden=True),
-
-    qnn.QuantConv2d(
-        32, 64, 5, padding=2,
-        weight_bit_width=8,
-        bias=True
-    ),
-
-    nn.AvgPool2d(2),  # 16x16 -> 8x8
+    qnn.QuantConv2d(32, 64, 5, padding=2, weight_bit_width=8, bias=True),
+    nn.AvgPool2d(2),  
     snn.Leaky(beta=beta, spike_grad=spike_grad, init_hidden=True),
-    nn.Flatten(),           # [B, 64*8*8]
-    qnn.QuantLinear(      # Linear 양자화 버전
-        64 * 8 * 8, 10,
-        weight_bit_width=8,
-        bias=True
-    ),
-
+    nn.Flatten(),     
+    qnn.QuantLinear(64 * 8 * 8, 10, weight_bit_width=8, bias=True),
     # 마지막 레이어: spikes와 membrane state를 모두 반환
     snn.Leaky(beta=beta, spike_grad=spike_grad,
               init_hidden=True, output=True)

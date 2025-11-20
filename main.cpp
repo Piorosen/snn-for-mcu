@@ -74,9 +74,13 @@ int main()
     int total_samples  = 0;
     int correct_samples = 0;
 
-
+    int iaa = 0;
     // 디렉토리 안의 .bin 파일 순회
     for (const auto& entry : fs::directory_iterator(dir)) {
+        iaa += 1;
+        if (iaa > 20) { 
+            break;
+        }
         float calc[10] { 0, };
         if (!entry.is_regular_file()) continue;
         auto path = entry.path();

@@ -286,26 +286,27 @@ void snn_forward_step(const float x[3][32][32],
                       float spk_out[10],
                       float mem_out[10])
 {
-	float in_buffer1[64][32][32];
-	float in_buffer2[64][32][32];
+    const int max_size = 48 * 32 * 32;
+	float in_buffer1[max_size];
+	// float in_buffer2[32][32][32];
 
     /* Conv1 */
-    conv1_forward(x, in_buffer1);
+    conv1_forward(x, &in_buffer1[0]);
     /* Pool1 */
-    avgpool2d_2x2_32x32(in_buffer1, in_buffer2);
+    avgpool2d_2x2_32x32(&in_buffer1[0], &in_buffer1[max_size - 32*16*16]);
     /* LIF1 */
-    lif1_step(in_buffer2, in_buffer1 /* 임시 버퍼 재사용: 모양[32][16][16] */);
+    lif1_step(&in_buffer1[max_size - 32*16*16], &in_buffer1[0] /* 임시 버퍼 재사용: 모양[32][16][16] */);
 
     /* Conv2: 입력은 LIF1의 spk_out -> g_conv2_out에 다시 덮어쓰지 않도록 주의 */
-    conv2_forward((const float (*)[16][16])in_buffer1, in_buffer2);
+    conv2_forward(&in_buffer1[0], &in_buffer1[max_size - 64*16*16]);
     /* Pool2 */
-    avgpool2d_2x2_16x16(in_buffer2, in_buffer1);
+    avgpool2d_2x2_16x16(&in_buffer1[max_size - 64*16*16], &in_buffer1[0]);
     /* LIF2 */
-    lif2_step(in_buffer1, (float (*)[8][8])in_buffer2 /* 임시 [64][8][8] 공간 필요하면 별도로 두어도 됨 */);
+    lif2_step(&in_buffer1[0], &in_buffer1[max_size - 64*8*8] /* 임시 [64][8][8] 공간 필요하면 별도로 두어도 됨 */);
     /* Flatten */
     // flatten_64x8x8_to_4096((const float (*)[8][8])g_pool1_out, g_flat);
     /* FC */
-    linear_fc_4096_10(in_buffer2, in_buffer1);
+    linear_fc_4096_10(&in_buffer1[max_size - 64*8*8], &in_buffer1[0]);
     /* LIF_out */
-    lif_out_step(in_buffer1, spk_out, mem_out);
+    lif_out_step(&in_buffer1[0], spk_out, mem_out);
 }

@@ -252,109 +252,115 @@ int main(void)
   /*##-1- LCD Configuration ##################################################*/
   LCD_Config();
 
-  /*##-2- Link the micro SD disk I/O driver ##################################*/
-  if(FATFS_LinkDriver(&SD_Driver, SDPath) == 0)
-  {
-    /*##-3- Register the file system object to the FatFs module ##############*/
-    if(f_mount(&SDFatFs, (TCHAR const*)SDPath, 0) == FR_OK)
-    {
-      /*##-4- Open the JPG image with read access ############################*/
-       if(f_open(&MyFile, "/Media/0000.jpg", FA_READ) == FR_OK)
-       {
-       }
-    }
+  for (int loop_image = 0; loop_image < 1000; i++) {
+	  char file_name[30];
+
+	  sprintf(file_name, "/Media/%04d.jpg", loop_image);
+	  /*##-2- Link the micro SD disk I/O driver ##################################*/
+	  if(FATFS_LinkDriver(&SD_Driver, SDPath) == 0)
+	  {
+	    /*##-3- Register the file system object to the FatFs module ##############*/
+	    if(f_mount(&SDFatFs, (TCHAR const*)SDPath, 0) == FR_OK)
+	    {
+	      /*##-4- Open the JPG image with read access ############################*/
+	       if(f_open(&MyFile, file_name, FA_READ) == FR_OK)
+	       {
+	       }
+	    }
+	  }
+
+	  float img_fbuffer[3][32][32];
+	//  float spikes[1][3][32][32];
+	  float spk_out[10];
+	  float mem_out[10];
+	  int calc[10] { 0 };
+
+	  /*##-5- Decode the jpg image file ##########################################*/
+	  uint8_t img_buffer[IMAGE_WIDTH * IMAGE_HEIGHT * IMAGE_CHANNEL];
+
+	  jpeg_decode(&MyFile, img_buffer, IMAGE_WIDTH);
+	  display_image_rgb565(IMAGE_WIDTH, IMAGE_HEIGHT, img_buffer, 10, 50);
+	  for (int k = 0; k < IMAGE_WIDTH * IMAGE_HEIGHT * IMAGE_CHANNEL; k++) {
+		  ((float*)img_fbuffer)[k] = ((float)img_buffer[k]) / 255.0f;
+	  }
+
+	  uint32_t start, end;
+	  uint32_t time_tmp;
+	  int pred = 0;
+	  char lcd_output_string[128];
+	  start = HAL_GetTick();
+
+
+	  // 한 타임스텝 forward
+	  snn_reset_state();
+
+	  for (int t = 0; t < 30; ++t) {
+		  spiking_rate(
+		      (const float*)img_fbuffer,
+		      (float*)img_fbuffer,  // 임시로 spikes에 스파이크 저장
+			  t, 30, 1, 3, 32, 32,
+		      1, 0
+		  );
+
+	      // spikes[t] -> [3][32][32] 라고 가정
+	      snn_forward_step((const float(*)[32][32])img_fbuffer, spk_out, mem_out);
+
+	      // 이번 타임스텝 스파이크를 calc에 누적
+	      for (int i = 0; i < 10; ++i) {
+	          calc[i] += spk_out[i];
+	      }
+
+	      time_tmp = HAL_GetTick();
+
+
+	      sprintf(lcd_output_string, "  Inference time: %ld ms", time_tmp - start);
+	      BSP_LCD_DisplayStringAt(0, LINE(5), (uint8_t*)lcd_output_string, LEFT_MODE);
+
+	      snprintf(lcd_output_string, sizeof(lcd_output_string),
+	               "  Score -05 : [%02d, %02d, %02d, %02d, %02d]",
+	               calc[0], calc[1], calc[2], calc[3], calc[4]);
+
+	      BSP_LCD_DisplayStringAt(0, LINE(6), (uint8_t*)lcd_output_string, LEFT_MODE);
+	      snprintf(lcd_output_string, sizeof(lcd_output_string),
+	               "  Score -10 : [%02d, %02d, %02d, %02d, %02d]",
+	               calc[5], calc[6], calc[7], calc[8], calc[9]);
+	      BSP_LCD_DisplayStringAt(0, LINE(8), (uint8_t*)lcd_output_string, LEFT_MODE);
+
+
+
+	//      snprintf(lcd_output_string, sizeof(lcd_output_string),
+	//               "  Score : [%02d, %02d, %02d, %02d, %02d, "
+	//               "%02d, %02d, %02d, %02d, %02d]",
+	//               calc[0], calc[1], calc[2], calc[3], calc[4],
+	//               calc[5], calc[6], calc[7], calc[8], calc[9]);
+	//
+	//      BSP_LCD_DisplayStringAt(0, LINE(6), (uint8_t*)lcd_output_string, LEFT_MODE);
+	//      sprintf(lcd_output_string, "  Inference time: %ld ms", time_tmp - start);
+	//      BSP_LCD_DisplayStringAt(0, LINE(5), (uint8_t*)lcd_output_string, LEFT_MODE);
+	  }
+
+	  float max_val = calc[0];
+	  for (int i = 1; i < 10; ++i) {
+	      if (calc[i] > max_val) {
+	          max_val = calc[i];
+	          pred = i;
+	      }
+	  }
+
+	  end = HAL_GetTick();
+
+	  sprintf(lcd_output_string, "  Inference time: %ld ms", end - start);
+	  BSP_LCD_DisplayStringAt(0, LINE(11), (uint8_t*)lcd_output_string, LEFT_MODE);
+
+
+	  sprintf(lcd_output_string, "  Prediction : %d, Answer : %d", pred, 3);
+	  BSP_LCD_DisplayStringAt(0, LINE(12), (uint8_t*)lcd_output_string, LEFT_MODE);
+
+
+	  /*##-4- Close the JPG image ################################################*/
+	  f_close(&MyFile);
+
   }
-
-  float img_fbuffer[3][32][32];
-//  float spikes[1][3][32][32];
-  float spk_out[10];
-  float mem_out[10];
-  int calc[10] { 0 };
-
-  /*##-5- Decode the jpg image file ##########################################*/
-  uint8_t img_buffer[IMAGE_WIDTH * IMAGE_HEIGHT * IMAGE_CHANNEL];
-
-  jpeg_decode(&MyFile, img_buffer, IMAGE_WIDTH);
-  display_image_rgb565(IMAGE_WIDTH, IMAGE_HEIGHT, img_buffer, 10, 50);
-  for (int k = 0; k < IMAGE_WIDTH * IMAGE_HEIGHT * IMAGE_CHANNEL; k++) {
-	  ((float*)img_fbuffer)[k] = ((float)img_buffer[k]) / 255.0f;
-  }
-
-  uint32_t start, end;
-  uint32_t time_tmp;
-  int pred = 0;
-  char lcd_output_string[128];
-  start = HAL_GetTick();
-
-
-  // 한 타임스텝 forward
-  snn_reset_state();
-
-  for (int t = 0; t < 30; ++t) {
-	  spiking_rate(
-	      (const float*)img_fbuffer,
-	      (float*)img_fbuffer,  // 임시로 spikes에 스파이크 저장
-		  t, 30, 1, 3, 32, 32,
-	      1, 0
-	  );
-
-      // spikes[t] -> [3][32][32] 라고 가정
-      snn_forward_step((const float(*)[32][32])img_fbuffer, spk_out, mem_out);
-
-      // 이번 타임스텝 스파이크를 calc에 누적
-      for (int i = 0; i < 10; ++i) {
-          calc[i] += spk_out[i];
-      }
-
-      time_tmp = HAL_GetTick();
-
-
-      sprintf(lcd_output_string, "  Inference time: %ld ms", time_tmp - start);
-      BSP_LCD_DisplayStringAt(0, LINE(5), (uint8_t*)lcd_output_string, LEFT_MODE);
-
-      snprintf(lcd_output_string, sizeof(lcd_output_string),
-               "  Score -05 : [%02d, %02d, %02d, %02d, %02d]",
-               calc[0], calc[1], calc[2], calc[3], calc[4]);
-
-      BSP_LCD_DisplayStringAt(0, LINE(6), (uint8_t*)lcd_output_string, LEFT_MODE);
-      snprintf(lcd_output_string, sizeof(lcd_output_string),
-               "  Score -10 : [%02d, %02d, %02d, %02d, %02d]",
-               calc[5], calc[6], calc[7], calc[8], calc[9]);
-      BSP_LCD_DisplayStringAt(0, LINE(8), (uint8_t*)lcd_output_string, LEFT_MODE);
-
-
-
-//      snprintf(lcd_output_string, sizeof(lcd_output_string),
-//               "  Score : [%02d, %02d, %02d, %02d, %02d, "
-//               "%02d, %02d, %02d, %02d, %02d]",
-//               calc[0], calc[1], calc[2], calc[3], calc[4],
-//               calc[5], calc[6], calc[7], calc[8], calc[9]);
-//
-//      BSP_LCD_DisplayStringAt(0, LINE(6), (uint8_t*)lcd_output_string, LEFT_MODE);
-//      sprintf(lcd_output_string, "  Inference time: %ld ms", time_tmp - start);
-//      BSP_LCD_DisplayStringAt(0, LINE(5), (uint8_t*)lcd_output_string, LEFT_MODE);
-  }
-
-  float max_val = calc[0];
-  for (int i = 1; i < 10; ++i) {
-      if (calc[i] > max_val) {
-          max_val = calc[i];
-          pred = i;
-      }
-  }
-
-  end = HAL_GetTick();
-
-  sprintf(lcd_output_string, "  Inference time: %ld ms", end - start);
-  BSP_LCD_DisplayStringAt(0, LINE(11), (uint8_t*)lcd_output_string, LEFT_MODE);
-
-
-  sprintf(lcd_output_string, "  Prediction : %d, Answer : %d", pred, 3);
-  BSP_LCD_DisplayStringAt(0, LINE(12), (uint8_t*)lcd_output_string, LEFT_MODE);
-
-
-  /*##-4- Close the JPG image ################################################*/
-  f_close(&MyFile);
 
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */

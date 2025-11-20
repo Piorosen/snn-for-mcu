@@ -1,0 +1,800 @@
+[Epoch 1/100] Iter 50/390 Loss: 2.2865
+[Epoch 1/100] Iter 100/390 Loss: 2.2097
+[Epoch 1/100] Iter 150/390 Loss: 2.1468
+[Epoch 1/100] Iter 200/390 Loss: 2.1234
+[Epoch 1/100] Iter 250/390 Loss: 2.0987
+[Epoch 1/100] Iter 300/390 Loss: 2.0530
+[Epoch 1/100] Iter 350/390 Loss: 2.0671
+Test Accuracy: 28.54%
+[Epoch 2/100] Iter 50/390 Loss: 2.0171
+[Epoch 2/100] Iter 100/390 Loss: 2.0254
+[Epoch 2/100] Iter 150/390 Loss: 2.0200
+[Epoch 2/100] Iter 200/390 Loss: 2.0195
+[Epoch 2/100] Iter 250/390 Loss: 2.0077
+[Epoch 2/100] Iter 300/390 Loss: 2.0002
+[Epoch 2/100] Iter 350/390 Loss: 1.9846
+Test Accuracy: 34.23%
+[Epoch 3/100] Iter 50/390 Loss: 1.9823
+[Epoch 3/100] Iter 100/390 Loss: 1.9852
+[Epoch 3/100] Iter 150/390 Loss: 1.9937
+[Epoch 3/100] Iter 200/390 Loss: 1.9693
+[Epoch 3/100] Iter 250/390 Loss: 1.9762
+[Epoch 3/100] Iter 300/390 Loss: 1.9669
+[Epoch 3/100] Iter 350/390 Loss: 1.9600
+Test Accuracy: 38.77%
+[Epoch 4/100] Iter 50/390 Loss: 1.9602
+[Epoch 4/100] Iter 100/390 Loss: 1.9515
+[Epoch 4/100] Iter 150/390 Loss: 1.9528
+[Epoch 4/100] Iter 200/390 Loss: 1.9538
+[Epoch 4/100] Iter 250/390 Loss: 1.9343
+[Epoch 4/100] Iter 300/390 Loss: 1.9388
+[Epoch 4/100] Iter 350/390 Loss: 1.9316
+Test Accuracy: 35.70%
+[Epoch 5/100] Iter 50/390 Loss: 1.9281
+[Epoch 5/100] Iter 100/390 Loss: 1.9228
+[Epoch 5/100] Iter 150/390 Loss: 1.9376
+[Epoch 5/100] Iter 200/390 Loss: 1.9273
+[Epoch 5/100] Iter 250/390 Loss: 1.9209
+[Epoch 5/100] Iter 300/390 Loss: 1.9378
+[Epoch 5/100] Iter 350/390 Loss: 1.9098
+Test Accuracy: 39.14%
+[Epoch 6/100] Iter 50/390 Loss: 1.9095
+[Epoch 6/100] Iter 100/390 Loss: 1.9102
+[Epoch 6/100] Iter 150/390 Loss: 1.9136
+[Epoch 6/100] Iter 200/390 Loss: 1.9171
+[Epoch 6/100] Iter 250/390 Loss: 1.9109
+[Epoch 6/100] Iter 300/390 Loss: 1.9125
+[Epoch 6/100] Iter 350/390 Loss: 1.9057
+Test Accuracy: 42.30%
+[Epoch 7/100] Iter 50/390 Loss: 1.8927
+[Epoch 7/100] Iter 100/390 Loss: 1.8907
+[Epoch 7/100] Iter 150/390 Loss: 1.8886
+[Epoch 7/100] Iter 200/390 Loss: 1.9003
+[Epoch 7/100] Iter 250/390 Loss: 1.9040
+[Epoch 7/100] Iter 300/390 Loss: 1.8925
+[Epoch 7/100] Iter 350/390 Loss: 1.8990
+Test Accuracy: 40.84%
+[Epoch 8/100] Iter 50/390 Loss: 1.8898
+[Epoch 8/100] Iter 100/390 Loss: 1.8923
+[Epoch 8/100] Iter 150/390 Loss: 1.8887
+[Epoch 8/100] Iter 200/390 Loss: 1.9009
+[Epoch 8/100] Iter 250/390 Loss: 1.8827
+[Epoch 8/100] Iter 300/390 Loss: 1.9033
+[Epoch 8/100] Iter 350/390 Loss: 1.8996
+Test Accuracy: 41.05%
+[Epoch 9/100] Iter 50/390 Loss: 1.8852
+[Epoch 9/100] Iter 100/390 Loss: 1.8907
+[Epoch 9/100] Iter 150/390 Loss: 1.8826
+[Epoch 9/100] Iter 200/390 Loss: 1.8888
+[Epoch 9/100] Iter 250/390 Loss: 1.8933
+[Epoch 9/100] Iter 300/390 Loss: 1.8761
+[Epoch 9/100] Iter 350/390 Loss: 1.8768
+Test Accuracy: 41.71%
+[Epoch 10/100] Iter 50/390 Loss: 1.8696
+[Epoch 10/100] Iter 100/390 Loss: 1.8737
+[Epoch 10/100] Iter 150/390 Loss: 1.8795
+[Epoch 10/100] Iter 200/390 Loss: 1.8850
+[Epoch 10/100] Iter 250/390 Loss: 1.8778
+[Epoch 10/100] Iter 300/390 Loss: 1.8807
+[Epoch 10/100] Iter 350/390 Loss: 1.8786
+Test Accuracy: 44.46%
+[Epoch 11/100] Iter 50/390 Loss: 1.8668
+[Epoch 11/100] Iter 100/390 Loss: 1.8694
+[Epoch 11/100] Iter 150/390 Loss: 1.8731
+[Epoch 11/100] Iter 200/390 Loss: 1.8667
+[Epoch 11/100] Iter 250/390 Loss: 1.8786
+[Epoch 11/100] Iter 300/390 Loss: 1.8728
+[Epoch 11/100] Iter 350/390 Loss: 1.8712
+Test Accuracy: 43.11%
+[Epoch 12/100] Iter 50/390 Loss: 1.8667
+[Epoch 12/100] Iter 100/390 Loss: 1.8680
+[Epoch 12/100] Iter 150/390 Loss: 1.8602
+[Epoch 12/100] Iter 200/390 Loss: 1.8752
+[Epoch 12/100] Iter 250/390 Loss: 1.8705
+[Epoch 12/100] Iter 300/390 Loss: 1.8609
+[Epoch 12/100] Iter 350/390 Loss: 1.8720
+Test Accuracy: 44.05%
+[Epoch 13/100] Iter 50/390 Loss: 1.8661
+[Epoch 13/100] Iter 100/390 Loss: 1.8669
+[Epoch 13/100] Iter 150/390 Loss: 1.8606
+[Epoch 13/100] Iter 200/390 Loss: 1.8770
+[Epoch 13/100] Iter 250/390 Loss: 1.8615
+[Epoch 13/100] Iter 300/390 Loss: 1.8666
+[Epoch 13/100] Iter 350/390 Loss: 1.8576
+Test Accuracy: 40.49%
+[Epoch 14/100] Iter 50/390 Loss: 1.8696
+[Epoch 14/100] Iter 100/390 Loss: 1.8506
+[Epoch 14/100] Iter 150/390 Loss: 1.8727
+[Epoch 14/100] Iter 200/390 Loss: 1.8510
+[Epoch 14/100] Iter 250/390 Loss: 1.8571
+[Epoch 14/100] Iter 300/390 Loss: 1.8617
+[Epoch 14/100] Iter 350/390 Loss: 1.8533
+Test Accuracy: 43.65%
+[Epoch 15/100] Iter 50/390 Loss: 1.8723
+[Epoch 15/100] Iter 100/390 Loss: 1.8566
+[Epoch 15/100] Iter 150/390 Loss: 1.8610
+[Epoch 15/100] Iter 200/390 Loss: 1.8538
+[Epoch 15/100] Iter 250/390 Loss: 1.8505
+[Epoch 15/100] Iter 300/390 Loss: 1.8561
+[Epoch 15/100] Iter 350/390 Loss: 1.8614
+Test Accuracy: 42.01%
+[Epoch 16/100] Iter 50/390 Loss: 1.8496
+[Epoch 16/100] Iter 100/390 Loss: 1.8573
+[Epoch 16/100] Iter 150/390 Loss: 1.8582
+[Epoch 16/100] Iter 200/390 Loss: 1.8472
+[Epoch 16/100] Iter 250/390 Loss: 1.8556
+[Epoch 16/100] Iter 300/390 Loss: 1.8502
+[Epoch 16/100] Iter 350/390 Loss: 1.8441
+Test Accuracy: 44.22%
+[Epoch 17/100] Iter 50/390 Loss: 1.8559
+[Epoch 17/100] Iter 100/390 Loss: 1.8584
+[Epoch 17/100] Iter 150/390 Loss: 1.8490
+[Epoch 17/100] Iter 200/390 Loss: 1.8445
+[Epoch 17/100] Iter 250/390 Loss: 1.8385
+[Epoch 17/100] Iter 300/390 Loss: 1.8576
+[Epoch 17/100] Iter 350/390 Loss: 1.8490
+Test Accuracy: 48.01%
+[Epoch 18/100] Iter 50/390 Loss: 1.8417
+[Epoch 18/100] Iter 100/390 Loss: 1.8433
+[Epoch 18/100] Iter 150/390 Loss: 1.8470
+[Epoch 18/100] Iter 200/390 Loss: 1.8516
+[Epoch 18/100] Iter 250/390 Loss: 1.8502
+[Epoch 18/100] Iter 300/390 Loss: 1.8497
+[Epoch 18/100] Iter 350/390 Loss: 1.8507
+Test Accuracy: 46.20%
+[Epoch 19/100] Iter 50/390 Loss: 1.8353
+[Epoch 19/100] Iter 100/390 Loss: 1.8290
+[Epoch 19/100] Iter 150/390 Loss: 1.8463
+[Epoch 19/100] Iter 200/390 Loss: 1.8422
+[Epoch 19/100] Iter 250/390 Loss: 1.8476
+[Epoch 19/100] Iter 300/390 Loss: 1.8504
+[Epoch 19/100] Iter 350/390 Loss: 1.8403
+Test Accuracy: 44.99%
+[Epoch 20/100] Iter 50/390 Loss: 1.8357
+[Epoch 20/100] Iter 100/390 Loss: 1.8350
+[Epoch 20/100] Iter 150/390 Loss: 1.8403
+[Epoch 20/100] Iter 200/390 Loss: 1.8415
+[Epoch 20/100] Iter 250/390 Loss: 1.8469
+[Epoch 20/100] Iter 300/390 Loss: 1.8429
+[Epoch 20/100] Iter 350/390 Loss: 1.8393
+Test Accuracy: 45.64%
+[Epoch 21/100] Iter 50/390 Loss: 1.8402
+[Epoch 21/100] Iter 100/390 Loss: 1.8328
+[Epoch 21/100] Iter 150/390 Loss: 1.8300
+[Epoch 21/100] Iter 200/390 Loss: 1.8426
+[Epoch 21/100] Iter 250/390 Loss: 1.8421
+[Epoch 21/100] Iter 300/390 Loss: 1.8492
+[Epoch 21/100] Iter 350/390 Loss: 1.8305
+Test Accuracy: 45.33%
+[Epoch 22/100] Iter 50/390 Loss: 1.8386
+[Epoch 22/100] Iter 100/390 Loss: 1.8228
+[Epoch 22/100] Iter 150/390 Loss: 1.8446
+[Epoch 22/100] Iter 200/390 Loss: 1.8393
+[Epoch 22/100] Iter 250/390 Loss: 1.8363
+[Epoch 22/100] Iter 300/390 Loss: 1.8446
+[Epoch 22/100] Iter 350/390 Loss: 1.8368
+Test Accuracy: 45.38%
+[Epoch 23/100] Iter 50/390 Loss: 1.8542
+[Epoch 23/100] Iter 100/390 Loss: 1.8447
+[Epoch 23/100] Iter 150/390 Loss: 1.8488
+[Epoch 23/100] Iter 200/390 Loss: 1.8365
+[Epoch 23/100] Iter 250/390 Loss: 1.8396
+[Epoch 23/100] Iter 300/390 Loss: 1.8296
+[Epoch 23/100] Iter 350/390 Loss: 1.8350
+Test Accuracy: 44.03%
+[Epoch 24/100] Iter 50/390 Loss: 1.8358
+[Epoch 24/100] Iter 100/390 Loss: 1.8344
+[Epoch 24/100] Iter 150/390 Loss: 1.8346
+[Epoch 24/100] Iter 200/390 Loss: 1.8378
+[Epoch 24/100] Iter 250/390 Loss: 1.8437
+[Epoch 24/100] Iter 300/390 Loss: 1.8363
+[Epoch 24/100] Iter 350/390 Loss: 1.8273
+Test Accuracy: 45.11%
+[Epoch 25/100] Iter 50/390 Loss: 1.8370
+[Epoch 25/100] Iter 100/390 Loss: 1.8312
+[Epoch 25/100] Iter 150/390 Loss: 1.8391
+[Epoch 25/100] Iter 200/390 Loss: 1.8264
+[Epoch 25/100] Iter 250/390 Loss: 1.8272
+[Epoch 25/100] Iter 300/390 Loss: 1.8319
+[Epoch 25/100] Iter 350/390 Loss: 1.8346
+Test Accuracy: 47.65%
+[Epoch 26/100] Iter 50/390 Loss: 1.8251
+[Epoch 26/100] Iter 100/390 Loss: 1.8267
+[Epoch 26/100] Iter 150/390 Loss: 1.8309
+[Epoch 26/100] Iter 200/390 Loss: 1.8302
+[Epoch 26/100] Iter 250/390 Loss: 1.8327
+[Epoch 26/100] Iter 300/390 Loss: 1.8379
+[Epoch 26/100] Iter 350/390 Loss: 1.8319
+Test Accuracy: 46.13%
+[Epoch 27/100] Iter 50/390 Loss: 1.8256
+[Epoch 27/100] Iter 100/390 Loss: 1.8343
+[Epoch 27/100] Iter 150/390 Loss: 1.8230
+[Epoch 27/100] Iter 200/390 Loss: 1.8246
+[Epoch 27/100] Iter 250/390 Loss: 1.8285
+[Epoch 27/100] Iter 300/390 Loss: 1.8347
+[Epoch 27/100] Iter 350/390 Loss: 1.8307
+Test Accuracy: 44.74%
+[Epoch 28/100] Iter 50/390 Loss: 1.8206
+[Epoch 28/100] Iter 100/390 Loss: 1.8263
+[Epoch 28/100] Iter 150/390 Loss: 1.8271
+[Epoch 28/100] Iter 200/390 Loss: 1.8238
+[Epoch 28/100] Iter 250/390 Loss: 1.8312
+[Epoch 28/100] Iter 300/390 Loss: 1.8311
+[Epoch 28/100] Iter 350/390 Loss: 1.8299
+Test Accuracy: 46.58%
+[Epoch 29/100] Iter 50/390 Loss: 1.8298
+[Epoch 29/100] Iter 100/390 Loss: 1.8216
+[Epoch 29/100] Iter 150/390 Loss: 1.8312
+[Epoch 29/100] Iter 200/390 Loss: 1.8330
+[Epoch 29/100] Iter 250/390 Loss: 1.8376
+[Epoch 29/100] Iter 300/390 Loss: 1.8285
+[Epoch 29/100] Iter 350/390 Loss: 1.8286
+Test Accuracy: 46.26%
+[Epoch 30/100] Iter 50/390 Loss: 1.8364
+[Epoch 30/100] Iter 100/390 Loss: 1.8259
+[Epoch 30/100] Iter 150/390 Loss: 1.8374
+[Epoch 30/100] Iter 200/390 Loss: 1.8259
+[Epoch 30/100] Iter 250/390 Loss: 1.8272
+[Epoch 30/100] Iter 300/390 Loss: 1.8328
+[Epoch 30/100] Iter 350/390 Loss: 1.8251
+Test Accuracy: 46.00%
+[Epoch 31/100] Iter 50/390 Loss: 1.8285
+[Epoch 31/100] Iter 100/390 Loss: 1.8167
+[Epoch 31/100] Iter 150/390 Loss: 1.8197
+[Epoch 31/100] Iter 200/390 Loss: 1.8220
+[Epoch 31/100] Iter 250/390 Loss: 1.8234
+[Epoch 31/100] Iter 300/390 Loss: 1.8298
+[Epoch 31/100] Iter 350/390 Loss: 1.8241
+Test Accuracy: 48.38%
+[Epoch 32/100] Iter 50/390 Loss: 1.8113
+[Epoch 32/100] Iter 100/390 Loss: 1.8349
+[Epoch 32/100] Iter 150/390 Loss: 1.8367
+[Epoch 32/100] Iter 200/390 Loss: 1.8405
+[Epoch 32/100] Iter 250/390 Loss: 1.8536
+[Epoch 32/100] Iter 300/390 Loss: 1.8217
+[Epoch 32/100] Iter 350/390 Loss: 1.8250
+Test Accuracy: 49.25%
+[Epoch 33/100] Iter 50/390 Loss: 1.8155
+[Epoch 33/100] Iter 100/390 Loss: 1.8127
+[Epoch 33/100] Iter 150/390 Loss: 1.8234
+[Epoch 33/100] Iter 200/390 Loss: 1.8215
+[Epoch 33/100] Iter 250/390 Loss: 1.8199
+[Epoch 33/100] Iter 300/390 Loss: 1.8306
+[Epoch 33/100] Iter 350/390 Loss: 1.8270
+Test Accuracy: 48.92%
+[Epoch 34/100] Iter 50/390 Loss: 1.8233
+[Epoch 34/100] Iter 100/390 Loss: 1.8101
+[Epoch 34/100] Iter 150/390 Loss: 1.8132
+[Epoch 34/100] Iter 200/390 Loss: 1.8255
+[Epoch 34/100] Iter 250/390 Loss: 1.8233
+[Epoch 34/100] Iter 300/390 Loss: 1.8172
+[Epoch 34/100] Iter 350/390 Loss: 1.8222
+Test Accuracy: 45.57%
+[Epoch 35/100] Iter 50/390 Loss: 1.8195
+[Epoch 35/100] Iter 100/390 Loss: 1.8217
+[Epoch 35/100] Iter 150/390 Loss: 1.8224
+[Epoch 35/100] Iter 200/390 Loss: 1.8177
+[Epoch 35/100] Iter 250/390 Loss: 1.8394
+[Epoch 35/100] Iter 300/390 Loss: 1.8371
+[Epoch 35/100] Iter 350/390 Loss: 1.8211
+Test Accuracy: 46.15%
+[Epoch 36/100] Iter 50/390 Loss: 1.8155
+[Epoch 36/100] Iter 100/390 Loss: 1.8294
+[Epoch 36/100] Iter 150/390 Loss: 1.8268
+[Epoch 36/100] Iter 200/390 Loss: 1.8217
+[Epoch 36/100] Iter 250/390 Loss: 1.8162
+[Epoch 36/100] Iter 300/390 Loss: 1.8171
+[Epoch 36/100] Iter 350/390 Loss: 1.8135
+Test Accuracy: 45.28%
+[Epoch 37/100] Iter 50/390 Loss: 1.8315
+[Epoch 37/100] Iter 100/390 Loss: 1.8099
+[Epoch 37/100] Iter 150/390 Loss: 1.8164
+[Epoch 37/100] Iter 200/390 Loss: 1.8076
+[Epoch 37/100] Iter 250/390 Loss: 1.8102
+[Epoch 37/100] Iter 300/390 Loss: 1.8235
+[Epoch 37/100] Iter 350/390 Loss: 1.8266
+Test Accuracy: 47.13%
+[Epoch 38/100] Iter 50/390 Loss: 1.8199
+[Epoch 38/100] Iter 100/390 Loss: 1.8329
+[Epoch 38/100] Iter 150/390 Loss: 1.8223
+[Epoch 38/100] Iter 200/390 Loss: 1.8136
+[Epoch 38/100] Iter 250/390 Loss: 1.8206
+[Epoch 38/100] Iter 300/390 Loss: 1.8128
+[Epoch 38/100] Iter 350/390 Loss: 1.8252
+Test Accuracy: 48.73%
+[Epoch 39/100] Iter 50/390 Loss: 1.8113
+[Epoch 39/100] Iter 100/390 Loss: 1.8171
+[Epoch 39/100] Iter 150/390 Loss: 1.8235
+[Epoch 39/100] Iter 200/390 Loss: 1.8231
+[Epoch 39/100] Iter 250/390 Loss: 1.8142
+[Epoch 39/100] Iter 300/390 Loss: 1.8218
+[Epoch 39/100] Iter 350/390 Loss: 1.8228
+Test Accuracy: 47.84%
+[Epoch 40/100] Iter 50/390 Loss: 1.8182
+[Epoch 40/100] Iter 100/390 Loss: 1.8052
+[Epoch 40/100] Iter 150/390 Loss: 1.8113
+[Epoch 40/100] Iter 200/390 Loss: 1.8297
+[Epoch 40/100] Iter 250/390 Loss: 1.8267
+[Epoch 40/100] Iter 300/390 Loss: 1.8263
+[Epoch 40/100] Iter 350/390 Loss: 1.8228
+Test Accuracy: 44.59%
+[Epoch 41/100] Iter 50/390 Loss: 1.8151
+[Epoch 41/100] Iter 100/390 Loss: 1.8219
+[Epoch 41/100] Iter 150/390 Loss: 1.8204
+[Epoch 41/100] Iter 200/390 Loss: 1.8137
+[Epoch 41/100] Iter 250/390 Loss: 1.8186
+[Epoch 41/100] Iter 300/390 Loss: 1.8119
+[Epoch 41/100] Iter 350/390 Loss: 1.8056
+Test Accuracy: 45.76%
+[Epoch 42/100] Iter 50/390 Loss: 1.8195
+[Epoch 42/100] Iter 100/390 Loss: 1.8137
+[Epoch 42/100] Iter 150/390 Loss: 1.8070
+[Epoch 42/100] Iter 200/390 Loss: 1.8015
+[Epoch 42/100] Iter 250/390 Loss: 1.8094
+[Epoch 42/100] Iter 300/390 Loss: 1.8171
+[Epoch 42/100] Iter 350/390 Loss: 1.8597
+Test Accuracy: 46.90%
+[Epoch 43/100] Iter 50/390 Loss: 1.8114
+[Epoch 43/100] Iter 100/390 Loss: 1.8117
+[Epoch 43/100] Iter 150/390 Loss: 1.8162
+[Epoch 43/100] Iter 200/390 Loss: 1.8120
+[Epoch 43/100] Iter 250/390 Loss: 1.8170
+[Epoch 43/100] Iter 300/390 Loss: 1.8245
+[Epoch 43/100] Iter 350/390 Loss: 1.8294
+Test Accuracy: 46.70%
+[Epoch 44/100] Iter 50/390 Loss: 1.8124
+[Epoch 44/100] Iter 100/390 Loss: 1.8192
+[Epoch 44/100] Iter 150/390 Loss: 1.8194
+[Epoch 44/100] Iter 200/390 Loss: 1.8132
+[Epoch 44/100] Iter 250/390 Loss: 1.8163
+[Epoch 44/100] Iter 300/390 Loss: 1.8134
+[Epoch 44/100] Iter 350/390 Loss: 1.8132
+Test Accuracy: 46.98%
+[Epoch 45/100] Iter 50/390 Loss: 1.8209
+[Epoch 45/100] Iter 100/390 Loss: 1.8138
+[Epoch 45/100] Iter 150/390 Loss: 1.8111
+[Epoch 45/100] Iter 200/390 Loss: 1.8141
+[Epoch 45/100] Iter 250/390 Loss: 1.8142
+[Epoch 45/100] Iter 300/390 Loss: 1.8083
+[Epoch 45/100] Iter 350/390 Loss: 1.8071
+Test Accuracy: 48.80%
+[Epoch 46/100] Iter 50/390 Loss: 1.8109
+[Epoch 46/100] Iter 100/390 Loss: 1.8100
+[Epoch 46/100] Iter 150/390 Loss: 1.8126
+[Epoch 46/100] Iter 200/390 Loss: 1.8048
+[Epoch 46/100] Iter 250/390 Loss: 1.8119
+[Epoch 46/100] Iter 300/390 Loss: 1.8159
+[Epoch 46/100] Iter 350/390 Loss: 1.8113
+Test Accuracy: 47.79%
+[Epoch 47/100] Iter 50/390 Loss: 1.8204
+[Epoch 47/100] Iter 100/390 Loss: 1.8126
+[Epoch 47/100] Iter 150/390 Loss: 1.8037
+[Epoch 47/100] Iter 200/390 Loss: 1.8116
+[Epoch 47/100] Iter 250/390 Loss: 1.8108
+[Epoch 47/100] Iter 300/390 Loss: 1.8170
+[Epoch 47/100] Iter 350/390 Loss: 1.8182
+Test Accuracy: 49.11%
+[Epoch 48/100] Iter 50/390 Loss: 1.8097
+[Epoch 48/100] Iter 100/390 Loss: 1.8047
+[Epoch 48/100] Iter 150/390 Loss: 1.7961
+[Epoch 48/100] Iter 200/390 Loss: 1.8068
+[Epoch 48/100] Iter 250/390 Loss: 1.8051
+[Epoch 48/100] Iter 300/390 Loss: 1.8157
+[Epoch 48/100] Iter 350/390 Loss: 1.8162
+Test Accuracy: 46.92%
+[Epoch 49/100] Iter 50/390 Loss: 1.7988
+[Epoch 49/100] Iter 100/390 Loss: 1.8144
+[Epoch 49/100] Iter 150/390 Loss: 1.8156
+[Epoch 49/100] Iter 200/390 Loss: 1.8115
+[Epoch 49/100] Iter 250/390 Loss: 1.8100
+[Epoch 49/100] Iter 300/390 Loss: 1.8042
+[Epoch 49/100] Iter 350/390 Loss: 1.8201
+Test Accuracy: 46.80%
+[Epoch 50/100] Iter 50/390 Loss: 1.8027
+[Epoch 50/100] Iter 100/390 Loss: 1.8188
+[Epoch 50/100] Iter 150/390 Loss: 1.8120
+[Epoch 50/100] Iter 200/390 Loss: 1.8161
+[Epoch 50/100] Iter 250/390 Loss: 1.8109
+[Epoch 50/100] Iter 300/390 Loss: 1.8034
+[Epoch 50/100] Iter 350/390 Loss: 1.8095
+Test Accuracy: 48.75%
+[Epoch 51/100] Iter 50/390 Loss: 1.8133
+[Epoch 51/100] Iter 100/390 Loss: 1.8155
+[Epoch 51/100] Iter 150/390 Loss: 1.8074
+[Epoch 51/100] Iter 200/390 Loss: 1.8024
+[Epoch 51/100] Iter 250/390 Loss: 1.7992
+[Epoch 51/100] Iter 300/390 Loss: 1.8036
+[Epoch 51/100] Iter 350/390 Loss: 1.8101
+Test Accuracy: 46.93%
+[Epoch 52/100] Iter 50/390 Loss: 1.8102
+[Epoch 52/100] Iter 100/390 Loss: 1.8114
+[Epoch 52/100] Iter 150/390 Loss: 1.7975
+[Epoch 52/100] Iter 200/390 Loss: 1.7995
+[Epoch 52/100] Iter 250/390 Loss: 1.8091
+[Epoch 52/100] Iter 300/390 Loss: 1.8133
+[Epoch 52/100] Iter 350/390 Loss: 1.8093
+Test Accuracy: 46.26%
+[Epoch 53/100] Iter 50/390 Loss: 1.8118
+[Epoch 53/100] Iter 100/390 Loss: 1.8036
+[Epoch 53/100] Iter 150/390 Loss: 1.7989
+[Epoch 53/100] Iter 200/390 Loss: 1.8057
+[Epoch 53/100] Iter 250/390 Loss: 1.8071
+[Epoch 53/100] Iter 300/390 Loss: 1.8179
+[Epoch 53/100] Iter 350/390 Loss: 1.8126
+Test Accuracy: 50.71%
+[Epoch 54/100] Iter 50/390 Loss: 1.8006
+[Epoch 54/100] Iter 100/390 Loss: 1.8065
+[Epoch 54/100] Iter 150/390 Loss: 1.8125
+[Epoch 54/100] Iter 200/390 Loss: 1.8031
+[Epoch 54/100] Iter 250/390 Loss: 1.8153
+[Epoch 54/100] Iter 300/390 Loss: 1.8019
+[Epoch 54/100] Iter 350/390 Loss: 1.8077
+Test Accuracy: 49.14%
+[Epoch 55/100] Iter 50/390 Loss: 1.8055
+[Epoch 55/100] Iter 100/390 Loss: 1.8031
+[Epoch 55/100] Iter 150/390 Loss: 1.8087
+[Epoch 55/100] Iter 200/390 Loss: 1.7954
+[Epoch 55/100] Iter 250/390 Loss: 1.7994
+[Epoch 55/100] Iter 300/390 Loss: 1.8124
+[Epoch 55/100] Iter 350/390 Loss: 1.8035
+Test Accuracy: 48.15%
+[Epoch 56/100] Iter 50/390 Loss: 1.8118
+[Epoch 56/100] Iter 100/390 Loss: 1.7987
+[Epoch 56/100] Iter 150/390 Loss: 1.8078
+[Epoch 56/100] Iter 200/390 Loss: 1.8154
+[Epoch 56/100] Iter 250/390 Loss: 1.8046
+[Epoch 56/100] Iter 300/390 Loss: 1.8071
+[Epoch 56/100] Iter 350/390 Loss: 1.8096
+Test Accuracy: 45.56%
+[Epoch 57/100] Iter 50/390 Loss: 1.8006
+[Epoch 57/100] Iter 100/390 Loss: 1.8067
+[Epoch 57/100] Iter 150/390 Loss: 1.8122
+[Epoch 57/100] Iter 200/390 Loss: 1.8054
+[Epoch 57/100] Iter 250/390 Loss: 1.8010
+[Epoch 57/100] Iter 300/390 Loss: 1.8045
+[Epoch 57/100] Iter 350/390 Loss: 1.7974
+Test Accuracy: 48.62%
+[Epoch 58/100] Iter 50/390 Loss: 1.7987
+[Epoch 58/100] Iter 100/390 Loss: 1.8020
+[Epoch 58/100] Iter 150/390 Loss: 1.8205
+[Epoch 58/100] Iter 200/390 Loss: 1.8071
+[Epoch 58/100] Iter 250/390 Loss: 1.8019
+[Epoch 58/100] Iter 300/390 Loss: 1.8025
+[Epoch 58/100] Iter 350/390 Loss: 1.8103
+Test Accuracy: 46.72%
+[Epoch 59/100] Iter 50/390 Loss: 1.8094
+[Epoch 59/100] Iter 100/390 Loss: 1.8054
+[Epoch 59/100] Iter 150/390 Loss: 1.8160
+[Epoch 59/100] Iter 200/390 Loss: 1.8159
+[Epoch 59/100] Iter 250/390 Loss: 1.8029
+[Epoch 59/100] Iter 300/390 Loss: 1.8082
+[Epoch 59/100] Iter 350/390 Loss: 1.8012
+Test Accuracy: 48.14%
+[Epoch 60/100] Iter 50/390 Loss: 1.8049
+[Epoch 60/100] Iter 100/390 Loss: 1.8058
+[Epoch 60/100] Iter 150/390 Loss: 1.8048
+[Epoch 60/100] Iter 200/390 Loss: 1.7945
+[Epoch 60/100] Iter 250/390 Loss: 1.8080
+[Epoch 60/100] Iter 300/390 Loss: 1.8106
+[Epoch 60/100] Iter 350/390 Loss: 1.8049
+Test Accuracy: 48.20%
+[Epoch 61/100] Iter 50/390 Loss: 1.7972
+[Epoch 61/100] Iter 100/390 Loss: 1.8064
+[Epoch 61/100] Iter 150/390 Loss: 1.8088
+[Epoch 61/100] Iter 200/390 Loss: 1.7978
+[Epoch 61/100] Iter 250/390 Loss: 1.7994
+[Epoch 61/100] Iter 300/390 Loss: 1.8068
+[Epoch 61/100] Iter 350/390 Loss: 1.8043
+Test Accuracy: 48.18%
+[Epoch 62/100] Iter 50/390 Loss: 1.7959
+[Epoch 62/100] Iter 100/390 Loss: 1.8025
+[Epoch 62/100] Iter 150/390 Loss: 1.7950
+[Epoch 62/100] Iter 200/390 Loss: 1.8061
+[Epoch 62/100] Iter 250/390 Loss: 1.8033
+[Epoch 62/100] Iter 300/390 Loss: 1.8189
+[Epoch 62/100] Iter 350/390 Loss: 1.8069
+Test Accuracy: 47.25%
+[Epoch 63/100] Iter 50/390 Loss: 1.8036
+[Epoch 63/100] Iter 100/390 Loss: 1.7981
+[Epoch 63/100] Iter 150/390 Loss: 1.8055
+[Epoch 63/100] Iter 200/390 Loss: 1.8140
+[Epoch 63/100] Iter 250/390 Loss: 1.8027
+[Epoch 63/100] Iter 300/390 Loss: 1.8119
+[Epoch 63/100] Iter 350/390 Loss: 1.8029
+Test Accuracy: 46.03%
+[Epoch 64/100] Iter 50/390 Loss: 1.8106
+[Epoch 64/100] Iter 100/390 Loss: 1.8040
+[Epoch 64/100] Iter 150/390 Loss: 1.8034
+[Epoch 64/100] Iter 200/390 Loss: 1.8104
+[Epoch 64/100] Iter 250/390 Loss: 1.8058
+[Epoch 64/100] Iter 300/390 Loss: 1.8083
+[Epoch 64/100] Iter 350/390 Loss: 1.8022
+Test Accuracy: 48.35%
+[Epoch 65/100] Iter 50/390 Loss: 1.8179
+[Epoch 65/100] Iter 100/390 Loss: 1.8017
+[Epoch 65/100] Iter 150/390 Loss: 1.8000
+[Epoch 65/100] Iter 200/390 Loss: 1.8077
+[Epoch 65/100] Iter 250/390 Loss: 1.8141
+[Epoch 65/100] Iter 300/390 Loss: 1.8145
+[Epoch 65/100] Iter 350/390 Loss: 1.8012
+Test Accuracy: 47.66%
+[Epoch 66/100] Iter 50/390 Loss: 1.8167
+[Epoch 66/100] Iter 100/390 Loss: 1.8176
+[Epoch 66/100] Iter 150/390 Loss: 1.8021
+[Epoch 66/100] Iter 200/390 Loss: 1.7988
+[Epoch 66/100] Iter 250/390 Loss: 1.8100
+[Epoch 66/100] Iter 300/390 Loss: 1.8111
+[Epoch 66/100] Iter 350/390 Loss: 1.8063
+Test Accuracy: 46.44%
+[Epoch 67/100] Iter 50/390 Loss: 1.7942
+[Epoch 67/100] Iter 100/390 Loss: 1.7931
+[Epoch 67/100] Iter 150/390 Loss: 1.7997
+[Epoch 67/100] Iter 200/390 Loss: 1.8042
+[Epoch 67/100] Iter 250/390 Loss: 1.7968
+[Epoch 67/100] Iter 300/390 Loss: 1.8132
+[Epoch 67/100] Iter 350/390 Loss: 1.8030
+Test Accuracy: 48.11%
+[Epoch 68/100] Iter 50/390 Loss: 1.7915
+[Epoch 68/100] Iter 100/390 Loss: 1.7882
+[Epoch 68/100] Iter 150/390 Loss: 1.7988
+[Epoch 68/100] Iter 200/390 Loss: 1.7928
+[Epoch 68/100] Iter 250/390 Loss: 1.8002
+[Epoch 68/100] Iter 300/390 Loss: 1.8198
+[Epoch 68/100] Iter 350/390 Loss: 1.8076
+Test Accuracy: 49.09%
+[Epoch 69/100] Iter 50/390 Loss: 1.8010
+[Epoch 69/100] Iter 100/390 Loss: 1.7929
+[Epoch 69/100] Iter 150/390 Loss: 1.7940
+[Epoch 69/100] Iter 200/390 Loss: 1.8105
+[Epoch 69/100] Iter 250/390 Loss: 1.8018
+[Epoch 69/100] Iter 300/390 Loss: 1.8125
+[Epoch 69/100] Iter 350/390 Loss: 1.7994
+Test Accuracy: 47.42%
+[Epoch 70/100] Iter 50/390 Loss: 1.8089
+[Epoch 70/100] Iter 100/390 Loss: 1.7986
+[Epoch 70/100] Iter 150/390 Loss: 1.7997
+[Epoch 70/100] Iter 200/390 Loss: 1.7980
+[Epoch 70/100] Iter 250/390 Loss: 1.7973
+[Epoch 70/100] Iter 300/390 Loss: 1.8011
+[Epoch 70/100] Iter 350/390 Loss: 1.8053
+Test Accuracy: 49.00%
+[Epoch 71/100] Iter 50/390 Loss: 1.7976
+[Epoch 71/100] Iter 100/390 Loss: 1.7917
+[Epoch 71/100] Iter 150/390 Loss: 1.8043
+[Epoch 71/100] Iter 200/390 Loss: 1.8080
+[Epoch 71/100] Iter 250/390 Loss: 1.8092
+[Epoch 71/100] Iter 300/390 Loss: 1.8005
+[Epoch 71/100] Iter 350/390 Loss: 1.7938
+Test Accuracy: 48.69%
+[Epoch 72/100] Iter 50/390 Loss: 1.7914
+[Epoch 72/100] Iter 100/390 Loss: 1.8041
+[Epoch 72/100] Iter 150/390 Loss: 1.7986
+[Epoch 72/100] Iter 200/390 Loss: 1.7943
+[Epoch 72/100] Iter 250/390 Loss: 1.8138
+[Epoch 72/100] Iter 300/390 Loss: 1.8048
+[Epoch 72/100] Iter 350/390 Loss: 1.7932
+Test Accuracy: 47.89%
+[Epoch 73/100] Iter 50/390 Loss: 1.7994
+[Epoch 73/100] Iter 100/390 Loss: 1.8005
+[Epoch 73/100] Iter 150/390 Loss: 1.7985
+[Epoch 73/100] Iter 200/390 Loss: 1.8020
+[Epoch 73/100] Iter 250/390 Loss: 1.8010
+[Epoch 73/100] Iter 300/390 Loss: 1.7996
+[Epoch 73/100] Iter 350/390 Loss: 1.8007
+Test Accuracy: 48.37%
+[Epoch 74/100] Iter 50/390 Loss: 1.7978
+[Epoch 74/100] Iter 100/390 Loss: 1.8002
+[Epoch 74/100] Iter 150/390 Loss: 1.7935
+[Epoch 74/100] Iter 200/390 Loss: 1.7999
+[Epoch 74/100] Iter 250/390 Loss: 1.8044
+[Epoch 74/100] Iter 300/390 Loss: 1.8011
+[Epoch 74/100] Iter 350/390 Loss: 1.8141
+Test Accuracy: 49.64%
+[Epoch 75/100] Iter 50/390 Loss: 1.7959
+[Epoch 75/100] Iter 100/390 Loss: 1.7980
+[Epoch 75/100] Iter 150/390 Loss: 1.7942
+[Epoch 75/100] Iter 200/390 Loss: 1.8043
+[Epoch 75/100] Iter 250/390 Loss: 1.7914
+[Epoch 75/100] Iter 300/390 Loss: 1.8015
+[Epoch 75/100] Iter 350/390 Loss: 1.8030
+Test Accuracy: 48.70%
+[Epoch 76/100] Iter 50/390 Loss: 1.7903
+[Epoch 76/100] Iter 100/390 Loss: 1.7985
+[Epoch 76/100] Iter 150/390 Loss: 1.7936
+[Epoch 76/100] Iter 200/390 Loss: 1.8040
+[Epoch 76/100] Iter 250/390 Loss: 1.8061
+[Epoch 76/100] Iter 300/390 Loss: 1.8075
+[Epoch 76/100] Iter 350/390 Loss: 1.8031
+Test Accuracy: 48.51%
+[Epoch 77/100] Iter 50/390 Loss: 1.7934
+[Epoch 77/100] Iter 100/390 Loss: 1.7964
+[Epoch 77/100] Iter 150/390 Loss: 1.8090
+[Epoch 77/100] Iter 200/390 Loss: 1.7882
+[Epoch 77/100] Iter 250/390 Loss: 1.8211
+[Epoch 77/100] Iter 300/390 Loss: 1.8146
+[Epoch 77/100] Iter 350/390 Loss: 1.7979
+Test Accuracy: 49.23%
+[Epoch 78/100] Iter 50/390 Loss: 1.7920
+[Epoch 78/100] Iter 100/390 Loss: 1.7892
+[Epoch 78/100] Iter 150/390 Loss: 1.7947
+[Epoch 78/100] Iter 200/390 Loss: 1.7987
+[Epoch 78/100] Iter 250/390 Loss: 1.7988
+[Epoch 78/100] Iter 300/390 Loss: 1.8022
+[Epoch 78/100] Iter 350/390 Loss: 1.8043
+Test Accuracy: 46.95%
+[Epoch 79/100] Iter 50/390 Loss: 1.7953
+[Epoch 79/100] Iter 100/390 Loss: 1.8041
+[Epoch 79/100] Iter 150/390 Loss: 1.7995
+[Epoch 79/100] Iter 200/390 Loss: 1.7989
+[Epoch 79/100] Iter 250/390 Loss: 1.7966
+[Epoch 79/100] Iter 300/390 Loss: 1.8008
+[Epoch 79/100] Iter 350/390 Loss: 1.7943
+Test Accuracy: 51.02%
+[Epoch 80/100] Iter 50/390 Loss: 1.7952
+[Epoch 80/100] Iter 100/390 Loss: 1.7896
+[Epoch 80/100] Iter 150/390 Loss: 1.8030
+[Epoch 80/100] Iter 200/390 Loss: 1.7996
+[Epoch 80/100] Iter 250/390 Loss: 1.8014
+[Epoch 80/100] Iter 300/390 Loss: 1.7888
+[Epoch 80/100] Iter 350/390 Loss: 1.7975
+Test Accuracy: 46.76%
+[Epoch 81/100] Iter 50/390 Loss: 1.8006
+[Epoch 81/100] Iter 100/390 Loss: 1.7966
+[Epoch 81/100] Iter 150/390 Loss: 1.8049
+[Epoch 81/100] Iter 200/390 Loss: 1.7992
+[Epoch 81/100] Iter 250/390 Loss: 1.8099
+[Epoch 81/100] Iter 300/390 Loss: 1.8110
+[Epoch 81/100] Iter 350/390 Loss: 1.7952
+Test Accuracy: 49.58%
+[Epoch 82/100] Iter 50/390 Loss: 1.7992
+[Epoch 82/100] Iter 100/390 Loss: 1.7999
+[Epoch 82/100] Iter 150/390 Loss: 1.7929
+[Epoch 82/100] Iter 200/390 Loss: 1.7949
+[Epoch 82/100] Iter 250/390 Loss: 1.8189
+[Epoch 82/100] Iter 300/390 Loss: 1.8089
+[Epoch 82/100] Iter 350/390 Loss: 1.8050
+Test Accuracy: 46.97%
+[Epoch 83/100] Iter 50/390 Loss: 1.7949
+[Epoch 83/100] Iter 100/390 Loss: 1.7993
+[Epoch 83/100] Iter 150/390 Loss: 1.7993
+[Epoch 83/100] Iter 200/390 Loss: 1.8083
+[Epoch 83/100] Iter 250/390 Loss: 1.7937
+[Epoch 83/100] Iter 300/390 Loss: 1.8090
+[Epoch 83/100] Iter 350/390 Loss: 1.7923
+Test Accuracy: 49.81%
+[Epoch 84/100] Iter 50/390 Loss: 1.7924
+[Epoch 84/100] Iter 100/390 Loss: 1.7999
+[Epoch 84/100] Iter 150/390 Loss: 1.8136
+[Epoch 84/100] Iter 200/390 Loss: 1.7997
+[Epoch 84/100] Iter 250/390 Loss: 1.7872
+[Epoch 84/100] Iter 300/390 Loss: 1.7949
+[Epoch 84/100] Iter 350/390 Loss: 1.7974
+Test Accuracy: 49.92%
+[Epoch 85/100] Iter 50/390 Loss: 1.7902
+[Epoch 85/100] Iter 100/390 Loss: 1.7957
+[Epoch 85/100] Iter 150/390 Loss: 1.8069
+[Epoch 85/100] Iter 200/390 Loss: 1.8216
+[Epoch 85/100] Iter 250/390 Loss: 1.8019
+[Epoch 85/100] Iter 300/390 Loss: 1.7995
+[Epoch 85/100] Iter 350/390 Loss: 1.8036
+Test Accuracy: 48.04%
+[Epoch 86/100] Iter 50/390 Loss: 1.8029
+[Epoch 86/100] Iter 100/390 Loss: 1.7918
+[Epoch 86/100] Iter 150/390 Loss: 1.8051
+[Epoch 86/100] Iter 200/390 Loss: 1.7991
+[Epoch 86/100] Iter 250/390 Loss: 1.7949
+[Epoch 86/100] Iter 300/390 Loss: 1.8000
+[Epoch 86/100] Iter 350/390 Loss: 1.8018
+Test Accuracy: 49.21%
+[Epoch 87/100] Iter 50/390 Loss: 1.7914
+[Epoch 87/100] Iter 100/390 Loss: 1.7948
+[Epoch 87/100] Iter 150/390 Loss: 1.8012
+[Epoch 87/100] Iter 200/390 Loss: 1.7979
+[Epoch 87/100] Iter 250/390 Loss: 1.7993
+[Epoch 87/100] Iter 300/390 Loss: 1.8050
+[Epoch 87/100] Iter 350/390 Loss: 1.7963
+Test Accuracy: 48.25%
+[Epoch 88/100] Iter 50/390 Loss: 1.8051
+[Epoch 88/100] Iter 100/390 Loss: 1.8011
+[Epoch 88/100] Iter 150/390 Loss: 1.7909
+[Epoch 88/100] Iter 200/390 Loss: 1.7941
+[Epoch 88/100] Iter 250/390 Loss: 1.7954
+[Epoch 88/100] Iter 300/390 Loss: 1.8050
+[Epoch 88/100] Iter 350/390 Loss: 1.7991
+Test Accuracy: 44.97%
+[Epoch 89/100] Iter 50/390 Loss: 1.8080
+[Epoch 89/100] Iter 100/390 Loss: 1.7987
+[Epoch 89/100] Iter 150/390 Loss: 1.7911
+[Epoch 89/100] Iter 200/390 Loss: 1.8051
+[Epoch 89/100] Iter 250/390 Loss: 1.8040
+[Epoch 89/100] Iter 300/390 Loss: 1.7995
+[Epoch 89/100] Iter 350/390 Loss: 1.7996
+Test Accuracy: 49.74%
+[Epoch 90/100] Iter 50/390 Loss: 1.7980
+[Epoch 90/100] Iter 100/390 Loss: 1.7922
+[Epoch 90/100] Iter 150/390 Loss: 1.7951
+[Epoch 90/100] Iter 200/390 Loss: 1.7998
+[Epoch 90/100] Iter 250/390 Loss: 1.8041
+[Epoch 90/100] Iter 300/390 Loss: 1.8043
+[Epoch 90/100] Iter 350/390 Loss: 1.7912
+Test Accuracy: 48.21%
+[Epoch 91/100] Iter 50/390 Loss: 1.7983
+[Epoch 91/100] Iter 100/390 Loss: 1.7953
+[Epoch 91/100] Iter 150/390 Loss: 1.8072
+[Epoch 91/100] Iter 200/390 Loss: 1.7975
+[Epoch 91/100] Iter 250/390 Loss: 1.8102
+[Epoch 91/100] Iter 300/390 Loss: 1.8178
+[Epoch 91/100] Iter 350/390 Loss: 1.8045
+Test Accuracy: 48.05%
+[Epoch 92/100] Iter 50/390 Loss: 1.8014
+[Epoch 92/100] Iter 100/390 Loss: 1.8012
+[Epoch 92/100] Iter 150/390 Loss: 1.8010
+[Epoch 92/100] Iter 200/390 Loss: 1.8039
+[Epoch 92/100] Iter 250/390 Loss: 1.8022
+[Epoch 92/100] Iter 300/390 Loss: 1.8003
+[Epoch 92/100] Iter 350/390 Loss: 1.7901
+Test Accuracy: 49.94%
+[Epoch 93/100] Iter 50/390 Loss: 1.7859
+[Epoch 93/100] Iter 100/390 Loss: 1.8010
+[Epoch 93/100] Iter 150/390 Loss: 1.7970
+[Epoch 93/100] Iter 200/390 Loss: 1.7922
+[Epoch 93/100] Iter 250/390 Loss: 1.8013
+[Epoch 93/100] Iter 300/390 Loss: 1.7892
+[Epoch 93/100] Iter 350/390 Loss: 1.8008
+Test Accuracy: 48.84%
+[Epoch 94/100] Iter 50/390 Loss: 1.7954
+[Epoch 94/100] Iter 100/390 Loss: 1.8033
+[Epoch 94/100] Iter 150/390 Loss: 1.8017
+[Epoch 94/100] Iter 200/390 Loss: 1.8109
+[Epoch 94/100] Iter 250/390 Loss: 1.7961
+[Epoch 94/100] Iter 300/390 Loss: 1.7873
+[Epoch 94/100] Iter 350/390 Loss: 1.7997
+Test Accuracy: 47.07%
+[Epoch 95/100] Iter 50/390 Loss: 1.8170
+[Epoch 95/100] Iter 100/390 Loss: 1.8002
+[Epoch 95/100] Iter 150/390 Loss: 1.8092
+[Epoch 95/100] Iter 200/390 Loss: 1.7987
+[Epoch 95/100] Iter 250/390 Loss: 1.7971
+[Epoch 95/100] Iter 300/390 Loss: 1.7958
+[Epoch 95/100] Iter 350/390 Loss: 1.8037
+Test Accuracy: 47.52%
+[Epoch 96/100] Iter 50/390 Loss: 1.7963
+[Epoch 96/100] Iter 100/390 Loss: 1.8115
+[Epoch 96/100] Iter 150/390 Loss: 1.8045
+[Epoch 96/100] Iter 200/390 Loss: 1.8097
+[Epoch 96/100] Iter 250/390 Loss: 1.8059
+[Epoch 96/100] Iter 300/390 Loss: 1.7971
+[Epoch 96/100] Iter 350/390 Loss: 1.7843
+Test Accuracy: 50.72%
+[Epoch 97/100] Iter 50/390 Loss: 1.7882
+[Epoch 97/100] Iter 100/390 Loss: 1.7869
+[Epoch 97/100] Iter 150/390 Loss: 1.7994
+[Epoch 97/100] Iter 200/390 Loss: 1.8076
+[Epoch 97/100] Iter 250/390 Loss: 1.7951
+[Epoch 97/100] Iter 300/390 Loss: 1.8059
+[Epoch 97/100] Iter 350/390 Loss: 1.8008
+Test Accuracy: 49.14%
+[Epoch 98/100] Iter 50/390 Loss: 1.7964
+[Epoch 98/100] Iter 100/390 Loss: 1.7912
+[Epoch 98/100] Iter 150/390 Loss: 1.8197
+[Epoch 98/100] Iter 200/390 Loss: 1.7898
+[Epoch 98/100] Iter 250/390 Loss: 1.7967
+[Epoch 98/100] Iter 300/390 Loss: 1.7954
+[Epoch 98/100] Iter 350/390 Loss: 1.7969
+Test Accuracy: 48.77%
+[Epoch 99/100] Iter 50/390 Loss: 1.7849
+[Epoch 99/100] Iter 100/390 Loss: 1.7930
+[Epoch 99/100] Iter 150/390 Loss: 1.8063
+[Epoch 99/100] Iter 200/390 Loss: 1.7947
+[Epoch 99/100] Iter 250/390 Loss: 1.8288
+[Epoch 99/100] Iter 300/390 Loss: 1.8117
+[Epoch 99/100] Iter 350/390 Loss: 1.8037
+Test Accuracy: 49.25%
+[Epoch 100/100] Iter 50/390 Loss: 1.7836
+[Epoch 100/100] Iter 100/390 Loss: 1.7938
+[Epoch 100/100] Iter 150/390 Loss: 1.7979
+[Epoch 100/100] Iter 200/390 Loss: 1.8129
+[Epoch 100/100] Iter 250/390 Loss: 1.7943
+[Epoch 100/100] Iter 300/390 Loss: 1.7991
+[Epoch 100/100] Iter 350/390 Loss: 1.7972
+Test Accuracy: 48.74%

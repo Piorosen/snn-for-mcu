@@ -43,7 +43,7 @@ net = nn.Sequential(
 )
 
 utils.reset(net)
-net.load_state_dict(torch.load("snn_cifar10.pth"))
+net.load_state_dict(torch.load("0096_acc50_snn_cifar10.pth"))
 
 
 #%%
@@ -118,7 +118,7 @@ axes[1].grid(True)
 axes[1].legend(loc="upper left", ncol=2, fontsize=8)
 
 plt.tight_layout()
-plt.show()
+plt.savefig("cumulative_spikes_over_time.png")
 
 
 # %%
