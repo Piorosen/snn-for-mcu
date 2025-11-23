@@ -1,312 +1,392 @@
 
-#include <stdlib.h>  // malloc, free, rand, srand
-#include <stdio.h>
+#include "snn.h"
 #include <string.h> // memset
-#include <stdint.h>
-#include <snn.h>
+#include <stdlib.h>
 
-#define IMG_H   32
-#define IMG_W   32
+// --------- 내부 상태 (LIF) ---------
 
-/* Conv1 출력: [32, 32, 32] */
+static int16_t g_lif1_mem[32][16][16];
+static int16_t g_lif1_spk_prev[32][16][16];
+static int16_t g_lif2_mem[64][8][8];
+static int16_t g_lif2_spk_prev[64][8][8];
+static int16_t g_lif_out_mem[10];
+static int16_t g_lif_out_spk_prev[10];
 
-static float g_lif1_mem[32][16][16];
-static float g_lif1_spk_prev[32][16][16];
-static float g_lif2_mem[64][8][8];
-static float g_lif2_spk_prev[64][8][8];
-static float g_lif_out_mem[10];
-static float g_lif_out_spk_prev[10];
+// 작업용 버퍼 (중간 feature 공유)
+// 최대 크기: Conv1 출력 [32][32][32] = 32768
+#define MAX_FEATURE_SIZE (128 * 32 * 32)
+static int16_t g_workbuf[MAX_FEATURE_SIZE];
+
+// --------- 유틸: saturate ---------
+
+static inline int16_t sat16_from32(int32_t x) {
+    if (x > 32767)  return 32767;
+    if (x < -32768) return -32768;
+    return (int16_t)x;
+}
+
+static inline int16_t sat16_from64(int64_t x) {
+    if (x > 32767)  return 32767;
+    if (x < -32768) return -32768;
+    return (int16_t)x;
+}
+
+// --------- Conv 5x5, padding=2, Q15 ---------
+
+#include <stdlib.h>
 
 
-/* --------- 유틸: 0으로 초기화 --------- */
+// data  : [B*C*H*W] 크기의 입력 (0~255)
+// spikes: [T * B * C * H * W] 크기의 출력 버퍼 (0 또는 1 저장)
 void spiking_rate(
-    const float* data,
-    float* spikes,
-	int index,
+    const uint8_t* data,   // 입력 데이터 (0 ~ 255)
+    int16_t* spikes,       // 출력 스파이크 (0 또는 1)
     int T, int B, int C, int H, int W,
     float gain,
     float offset
-) {
-    int spatial = B * C * H * W;       // 1 * 3 * 32 * 32 = 3072
-    float* prob = (float*)malloc(sizeof(float) * spatial);
-    if (!prob) {
-        fprintf(stderr, "malloc 실패\n");
-        return;
-    }
+){ 
+    int spatial = B * C * H * W;   // 예: 1 * 3 * 32 * 32 = 3072
+
 
     for (int i = 0; i < spatial; ++i) {
-        float p = gain * data[i] + offset;
+        // 0~255 → 0~1 로 정규화
+        float x = (float)data[i] / 255.0f;
+
+        // 발화 확률 p = gain * x + offset
+        float p = gain * x + offset;
         if (p < 0.0f) p = 0.0f;
         if (p > 1.0f) p = 1.0f;
-        prob[i] = p;
-    }
 
-        for (int i = 0; i < spatial; ++i) {
-            // [0,1) 균등분포
-            float r = (float)rand() / ((float)RAND_MAX + 1.0f);
-            float p = prob[i];  // broadcast
-            spikes[/*t * spatial + */i] = (r < p) ? 1.0f : 0.0f;
-        }
-    free(prob);
+        // [0,1) 균등 난수
+        float r = (float)rand() / ((float)RAND_MAX + 1.0f);
+
+        // 스파이크 발생 여부 (int16_t로 0 또는 1)
+        spikes[i] = (r < p) ? 32767 : 0;
+    }
 }
 
 
+/*
+ * in  : Q15, shape [C_in][H][W]
+ * out : Q15, shape [C_out][H][W]
+ * weight : int8, shape [C_out][C_in][5][5]
+ * weight_scale : Q15 (export된 값), per-layer 스케일 가정
+ * bias   : int8, shape [C_out]
+ * bias_scale : Q15
+ *
+ * float 기준 표현:
+ *   y_real ≈ sum( x_real * (w_int8 * s_w) ) + b_int8 * s_b
+ *
+ * Q15 기준:
+ *   x_real  ≈ x_q15 / 2^15
+ *   s_w     ≈ s_w_q15 / 2^15
+ *   s_b     ≈ s_b_q15 / 2^15
+ */
+static void conv2d_5x5_pad2_q15(
+    int C_in, int C_out,
+    int H, int W,
+    const int16_t *in,      // [C_in][H][W]
+    int16_t *out,           // [C_out][H][W]
+    const int8_t *weight,   // [C_out][C_in][5][5]
+    int16_t weight_scale,   // Q15
+    const int8_t *bias,     // [C_out]
+    int16_t bias_scale      // Q15
+) {
+    for (int co = 0; co < C_out; ++co) {
+        for (int h = 0; h < H; ++h) {
+            for (int w = 0; w < W; ++w) {
 
-/* --------- Conv2D 5x5, padding=2 구현 (Conv1) --------- */
-/* 입력: in[3][32][32], 출력: out[32][32][32] */
-void conv2d_5x5_pad2_forward(int C_in, int C_out,
-                             int H, int W,
-                             const float *in,
-                             float *out,
-                             const int8_t *weight,
-                             const float weight_scale,
-                             const int8_t *bias,
-                             const float bias_scale)
-{
-    int co, ci, h, w, kh, kw;
+                // 1) 가중치 부분 누산 (Q15)
+                int64_t sum_w_q15 = 0;
 
-    for (co = 0; co < C_out; ++co)
-    {
-        for (h = 0; h < H; ++h)
-        {
-            for (w = 0; w < W; ++w)
-            {
-                float sum = (float)bias[co] * bias_scale;
+                for (int ci = 0; ci < C_in; ++ci) {
+                    for (int kh = -2; kh <= 2; ++kh) {
+                        int ih = h + kh;
+                        if (ih < 0 || ih >= H) continue;
 
-                for (ci = 0; ci < C_in; ++ci)
-                {
-                    /* 이 (h, w)에 대해 실제로 유효한 kh, kw 범위만 계산 */
-                    int kh_start = (h <= 2) ? (2 - h) : 0;
-                    int kh_end   = (h >= H - 3) ? (H - 1 + 2 - h) : 4;
+                        for (int kw = -2; kw <= 2; ++kw) {
+                            int iw = w + kw;
+                            if (iw < 0 || iw >= W) continue;
 
-                    int kw_start = (w <= 2) ? (2 - w) : 0;
-                    int kw_end   = (w >= W - 3) ? (W - 1 + 2 - w) : 4;
+                            int in_idx = (ci * H + ih) * W + iw;
+                            int w_kh = kh + 2;
+                            int w_kw = kw + 2;
+                            int w_idx = (((co * C_in) + ci) * 5 + w_kh) * 5 + w_kw;
 
-                    int base_in   = ci * H * W;
-                    int base_w_co_ci = ((co * C_in) + ci) * 25; // 5*5 = 25
+                            int16_t x_q15 = in[in_idx];
+                            int8_t  w_q0  = weight[w_idx];
 
-                    for (kh = kh_start; kh <= kh_end; ++kh)
-                    {
-                        int ih = h + kh - 2; // 실제 입력 위치 (row)
-                        for (kw = kw_start; kw <= kw_end; ++kw)
-                        {
-                            int iw = w + kw - 2; // 실제 입력 위치 (col)
-
-                            // 여기까지 온 kh, kw는 항상 유효 범위만 돌도록 만들어져 있음
-                            float in_val = in[base_in + ih * W + iw];
-
-                            int w_idx = base_w_co_ci + kh * 5 + kw;
-                            float w_val = (float)weight[w_idx] * weight_scale;
-
-                            sum += in_val * w_val;
+                            // x_q15 (Q15) * w_q0 (Q0) -> Q15
+                            sum_w_q15 += (int32_t)x_q15 * (int32_t)w_q0;
                         }
                     }
                 }
 
-                out[(co * H + h) * W + w] = sum;
+                // 2) weight scale 적용: Q15 * Q15 -> Q30, >>15 -> Q15
+                int64_t tmp = sum_w_q15 * (int64_t)weight_scale;
+                int32_t y_w_q15 = (int32_t)(tmp >> Q15_SHIFT);
+
+                // 3) bias 부분: bias_int8 * bias_scale_q15 -> Q15
+                int32_t y_b_q15 = (int32_t)bias[co] * (int32_t)bias_scale;
+
+                // 4) 합산 및 saturate
+                int32_t y_q15 = y_w_q15 + y_b_q15;
+                int out_idx = (co * H + h) * W + w;
+                out[out_idx] = sat16_from32(y_q15);
             }
         }
     }
 }
 
-
-void conv1_forward(const float* in,
-                          float* out)
-{
-	conv2d_5x5_pad2_forward(3, 32, 32, 32, in, out, (int8_t*)snn_conv1_weight, snn_conv1_weight_scale, (int8_t*)snn_conv1_bias, snn_conv1_bias_scale);
+// Conv1 래퍼
+static void conv1_forward(const int16_t *in, int16_t *out) {
+    conv2d_5x5_pad2_q15(
+        3, 32, 32, 32,
+        in, out,
+        (const int8_t*)snn_conv1_weight,
+        snn_conv1_weight_scale,
+        (const int8_t*)snn_conv1_bias,
+        snn_conv1_bias_scale
+    );
 }
 
-/* --------- Conv2D 5x5, padding=2 구현 (Conv2) --------- */
-/* 입력: in[32][16][16], 출력: out[64][16][16] */
-void conv2_forward(const float* in,
-                          float* out)
-{
-	conv2d_5x5_pad2_forward(32, 64, 16, 16, in, out, (int8_t*)snn_conv2_weight, snn_conv2_weight_scale, (int8_t*)snn_conv2_bias, snn_conv2_bias_scale);
+// Conv2 래퍼
+static void conv2_forward(const int16_t *in, int16_t *out) {
+    conv2d_5x5_pad2_q15(
+        32, 64, 16, 16,
+        in, out,
+        (const int8_t*)snn_conv2_weight,
+        snn_conv2_weight_scale,
+        (const int8_t*)snn_conv2_bias,
+        snn_conv2_bias_scale
+    );
 }
 
+// --------- AvgPool2D 2x2, stride=2, Q15 ---------
 
-/* --------- AvgPool2D(2x2, stride=2), Conv1 출력용 --------- */
-/* 입력: in[32][32][32], 출력: out[32][16][16] */
-void avgpool2d_2x2_s2_forward(int C, int H, int W,
-                              const float *in,
-                              float *out)
-{
-    int c, oh, ow;
+static void avgpool2d_2x2_s2_q15(
+    int C, int H, int W,
+    const int16_t *in,
+    int16_t *out
+) {
     int H_out = H / 2;
     int W_out = W / 2;
 
-    for (c = 0; c < C; ++c) {
-        for (oh = 0; oh < H_out; ++oh) {
-            for (ow = 0; ow < W_out; ++ow) {
+    for (int c = 0; c < C; ++c) {
+        for (int oh = 0; oh < H_out; ++oh) {
+            for (int ow = 0; ow < W_out; ++ow) {
                 int h0 = oh * 2;
                 int w0 = ow * 2;
-                float sum = 0.0f;
 
-                sum += in[(c * H + (h0 + 0)) * W + (w0 + 0)];
-                sum += in[(c * H + (h0 + 0)) * W + (w0 + 1)];
-                sum += in[(c * H + (h0 + 1)) * W + (w0 + 0)];
-                sum += in[(c * H + (h0 + 1)) * W + (w0 + 1)];
+                int idx00 = (c * H + (h0 + 0)) * W + (w0 + 0);
+                int idx01 = (c * H + (h0 + 0)) * W + (w0 + 1);
+                int idx10 = (c * H + (h0 + 1)) * W + (w0 + 0);
+                int idx11 = (c * H + (h0 + 1)) * W + (w0 + 1);
 
-                out[(c * H_out + oh) * W_out + ow] = sum * 0.25f;
+                int32_t sum = 0;
+                sum += in[idx00];
+                sum += in[idx01];
+                sum += in[idx10];
+                sum += in[idx11];
+
+                // 평균 = sum / 4 (rounding 포함)
+                int32_t avg = (sum + ((sum >= 0) ? 2 : -2)) >> 2;
+
+                int out_idx = (c * H_out + oh) * W_out + ow;
+                out[out_idx] = sat16_from32(avg);
             }
         }
     }
 }
 
-/* --------- AvgPool2D(2x2, stride=2), Conv1 출력용 --------- */
-/* 입력: in[32][32][32], 출력: out[32][16][16] */
-void avgpool2d_2x2_32x32(const float* in,// [32][32][32],
-                                float* out)//[32][16][16])
-{
-	avgpool2d_2x2_s2_forward(32,32,32, (float*)in, (float*)out);
+// Conv1 출력용: [32][32][32] -> [32][16][16]
+static void avgpool2d_2x2_32x32(const int16_t *in, int16_t *out) {
+    avgpool2d_2x2_s2_q15(32, 32, 32, in, out);
 }
 
-/* --------- AvgPool2D(2x2, stride=2), Conv2 출력용 --------- */
-/* 입력: in[64][16][16], 출력: out[64][8][8] */
-void avgpool2d_2x2_16x16(const float* in,//[64][16][16],
-                                float* out) // [64][8][8])
-{
-	avgpool2d_2x2_s2_forward(64,16,16, (float*)in, (float*)out);
+// Conv2 출력용: [64][16][16] -> [64][8][8]
+static void avgpool2d_2x2_16x16(const int16_t *in, int16_t *out) {
+    avgpool2d_2x2_s2_q15(64, 16, 16, in, out);
 }
 
-// /* --------- Flatten: [64][8][8] -> [4096] --------- */
+// --------- FC 4096 -> 10, Q15 ---------
 
-// void flatten_64x8x8_to_4096(const float in[64][8][8],
-//                                    float out[4096])
-// {
-//     int idx = 0;
-//     for (int c = 0; c < 64; ++c) {
-//         for (int h = 0; h < 8; ++h) {
-//             for (int w = 0; w < 8; ++w) {
-//                 out[idx++] = in[c][h][w];
-//             }
-//         }
-//     }
-// }
-
-/* --------- Linear: 4096 -> 10 --------- */
-void linear_fc_4096_10(const float* in,
-                              float* out)
-{
+static void linear_fc_4096_10(const int16_t *in_q15, int16_t *out_q15) {
     for (int o = 0; o < 10; ++o) {
-        float sum = (snn_fc_bias[o] * snn_fc_bias_scale);
+        int64_t sum_w_q15 = 0;
+
         for (int i = 0; i < 4096; ++i) {
-            sum += (snn_fc_weight[o][i] * snn_fc_weight_scale) * in[i];
+            int16_t x_q15 = in_q15[i];
+            int8_t  w_q0  = snn_fc_weight[o][i];
+            // x_q15(Q15) * w_q0(Q0) -> Q15
+            sum_w_q15 += (int32_t)x_q15 * (int32_t)w_q0;
         }
-        out[o] = sum;
+
+        // weight scale: Q15 * Q15 -> Q30 >>15 -> Q15
+        int64_t tmp = sum_w_q15 * (int64_t)snn_fc_weight_scale;
+        int32_t y_w_q15 = (int32_t)(tmp >> Q15_SHIFT);
+
+        // bias: int8 * Q15 -> Q15
+        int32_t y_b_q15 = (int32_t)snn_fc_bias[o] * (int32_t)snn_fc_bias_scale;
+
+        int32_t y_q15 = y_w_q15 + y_b_q15;
+        out_q15[o] = sat16_from32(y_q15);
     }
 }
 
-/* --------- LeakyNP step (reset_mechanism="subtract", reset_delay=True) --------- */
-/* LIF1: 입력 in[32][16][16], 출력 spk_out[32][16][16] (spk_prev 출력) */
+// --------- LIF step (Q15) ---------
 
-void lif1_step(const float in[32][16][16],
-               float spk_out[32][16][16])
-{
+/*
+ * reset_mechanism="subtract", reset_delay=True
+ * mem, in, threshold, beta 모두 Q15
+ * spike는 Q15에서 0 또는 ONE_Q15
+ */
+
+// LIF1: in [32][16][16], out spk_prev[32][16][16]
+static void lif1_step(const int16_t *in, int16_t *spk_out) {
+    int H = 16, W = 16;
+
     for (int c = 0; c < 32; ++c) {
-        for (int h = 0; h < 16; ++h) {
-            for (int w = 0; w < 16; ++w) {
-                float mem_prev = g_lif1_mem[c][h][w];
-                float spk_prev = g_lif1_spk_prev[c][h][w];
+        for (int h = 0; h < H; ++h) {
+            for (int w = 0; w < W; ++w) {
+                int idx = (c * H + h) * W + w;
 
-                float mem_tilde = snn_lif1_beta * mem_prev + in[c][h][w];
-                float spk_raw   = (mem_tilde >= snn_lif1_threshold) ? 1.0f : 0.0f;
-                float mem_next  = mem_tilde - spk_raw * snn_lif1_threshold;
+                int16_t mem_prev = g_lif1_mem[c][h][w];
+                int16_t spk_prev = g_lif1_spk_prev[c][h][w];
+                int16_t in_val   = in[idx];
 
-                spk_out[c][h][w] = spk_prev;
+                // mem_tilde = beta * mem_prev + in (Q15)
+                int32_t tmp = ((int32_t)snn_lif1_beta * (int32_t)mem_prev) >> Q15_SHIFT;
+                int32_t mem_tilde = tmp + in_val;
+                int16_t mem_tilde_q15 = sat16_from32(mem_tilde);
 
-                g_lif1_spk_prev[c][h][w] = spk_raw;
-                g_lif1_mem[c][h][w]      = mem_next;
+                int16_t spk_raw_q15 = 0;
+                int16_t mem_next_q15 = mem_tilde_q15;
+
+                if (mem_tilde_q15 >= snn_lif1_threshold) {
+                    spk_raw_q15 = ONE_Q15;
+                    mem_next_q15 = mem_tilde_q15 - snn_lif1_threshold;
+                }
+
+                // reset_delay=True -> 현재 step 출력은 이전 spk
+                spk_out[idx] = spk_prev;
+
+                g_lif1_spk_prev[c][h][w] = spk_raw_q15;
+                g_lif1_mem[c][h][w]      = mem_next_q15;
             }
         }
     }
 }
 
-/* LIF2: in[64][8][8], out spk_out[64][8][8] */
+// LIF2: in [64][8][8], out spk_prev[64][8][8]
+static void lif2_step(const int16_t *in, int16_t *spk_out) {
+    int H = 8, W = 8;
 
-void lif2_step(const float in[64][8][8],
-                      float spk_out[64][8][8])
-{
     for (int c = 0; c < 64; ++c) {
-        for (int h = 0; h < 8; ++h) {
-            for (int w = 0; w < 8; ++w) {
-            	float mem_prev = g_lif2_mem[c][h][w];
-            	float spk_prev = g_lif2_spk_prev[c][h][w];
+        for (int h = 0; h < H; ++h) {
+            for (int w = 0; w < W; ++w) {
+                int idx = (c * H + h) * W + w;
 
-            	float mem_tilde = snn_lif2_beta * mem_prev + (in[c][h][w]);
-                float spk_raw   = (mem_tilde >= (snn_lif2_threshold)) ? 1.0f : 0.0f;
-                float mem_next  = mem_tilde - spk_raw * (snn_lif2_threshold);
+                int16_t mem_prev = g_lif2_mem[c][h][w];
+                int16_t spk_prev = g_lif2_spk_prev[c][h][w];
+                int16_t in_val   = in[idx];
 
-                spk_out[c][h][w] = spk_prev;
+                int32_t tmp = ((int32_t)snn_lif2_beta * (int32_t)mem_prev) >> Q15_SHIFT;
+                int32_t mem_tilde = tmp + in_val;
+                int16_t mem_tilde_q15 = sat16_from32(mem_tilde);
 
-                g_lif2_spk_prev[c][h][w] = spk_raw;
-                g_lif2_mem[c][h][w]      = mem_next;
+                int16_t spk_raw_q15 = 0;
+                int16_t mem_next_q15 = mem_tilde_q15;
+
+                if (mem_tilde_q15 >= snn_lif2_threshold) {
+                    spk_raw_q15 = ONE_Q15;
+                    mem_next_q15 = mem_tilde_q15 - snn_lif2_threshold;
+                }
+
+                spk_out[idx] = spk_prev;
+
+                g_lif2_spk_prev[c][h][w] = spk_raw_q15;
+                g_lif2_mem[c][h][w]      = mem_next_q15;
             }
         }
     }
 }
 
-/* LIF_out: in[10], out spk_out[10], mem_out[10] */
-
-void lif_out_step(const float in[10],
-                         float spk_out[10],
-                         float mem_out[10])
-{
+// LIF_out: in[10], out spk_prev[10], mem_out[10]
+static void lif_out_step(const int16_t in[10],
+                         int16_t spk_out[10],
+                         int16_t mem_out[10]) {
     for (int i = 0; i < 10; ++i) {
-    	float mem_prev = g_lif_out_mem[i];
-    	float spk_prev = g_lif_out_spk_prev[i];
+        int16_t mem_prev = g_lif_out_mem[i];
+        int16_t spk_prev = g_lif_out_spk_prev[i];
+        int16_t in_val   = in[i];
 
-    	float mem_tilde = snn_lif_out_beta * mem_prev + (in[i]);
-        float spk_raw   = (mem_tilde >= (snn_lif_out_threshold)) ? 1.0f : 0.0f;
-        float mem_next  = mem_tilde - spk_raw * (snn_lif_out_threshold);
+        int32_t tmp = ((int32_t)snn_lif_out_beta * (int32_t)mem_prev) >> Q15_SHIFT;
+        int32_t mem_tilde = tmp + in_val;
+        int16_t mem_tilde_q15 = sat16_from32(mem_tilde);
+
+        int16_t spk_raw_q15 = 0;
+        int16_t mem_next_q15 = mem_tilde_q15;
+
+        if (mem_tilde_q15 >= snn_lif_out_threshold) {
+            spk_raw_q15 = ONE_Q15;
+            mem_next_q15 = mem_tilde_q15 - snn_lif_out_threshold;
+        }
 
         spk_out[i] = spk_prev;
-        mem_out[i] = mem_next;
+        mem_out[i] = mem_next_q15;
 
-        g_lif_out_spk_prev[i] = spk_raw;
-        g_lif_out_mem[i]      = mem_next;
+        g_lif_out_spk_prev[i] = spk_raw_q15;
+        g_lif_out_mem[i]      = mem_next_q15;
     }
 }
-void snn_reset_state(void)
-{
-    memset(g_lif1_mem, 0, sizeof(g_lif1_mem));
-    memset(g_lif1_spk_prev, 0, sizeof(g_lif1_spk_prev));
 
-    memset(g_lif2_mem, 0, sizeof(g_lif2_mem));
-    memset(g_lif2_spk_prev, 0, sizeof(g_lif2_spk_prev));
+// --------- 상태 리셋 ---------
 
-    memset(g_lif_out_mem, 0, sizeof(g_lif_out_mem));
+void snn_reset_state(void) {
+    memset(g_lif1_mem,         0, sizeof(g_lif1_mem));
+    memset(g_lif1_spk_prev,    0, sizeof(g_lif1_spk_prev));
+    memset(g_lif2_mem,         0, sizeof(g_lif2_mem));
+    memset(g_lif2_spk_prev,    0, sizeof(g_lif2_spk_prev));
+    memset(g_lif_out_mem,      0, sizeof(g_lif_out_mem));
     memset(g_lif_out_spk_prev, 0, sizeof(g_lif_out_spk_prev));
 }
 
+// --------- 전체 한 step forward (B=1) ---------
 
-/* --------- 전체 한 step forward (B=1) --------- */
+void snn_forward_step(const int16_t* x,
+                      int16_t* spk_out,
+                      int16_t* mem_out) {
+    // g_workbuf 재사용
+    int16_t *buf = g_workbuf;
 
-void snn_forward_step(const float x[3][32][32],
-                      float spk_out[10],
-                      float mem_out[10])
-{
-    const int max_size = 48 * 32 * 32;
-	float in_buffer1[max_size];
-	// float in_buffer2[32][32][32];
+    // Conv1: 입력 [3][32][32] -> buf[0 .. 32*32*32-1]
+    conv1_forward(x, buf);
 
-    /* Conv1 */
-    conv1_forward(x, &in_buffer1[0]);
-    /* Pool1 */
-    avgpool2d_2x2_32x32(&in_buffer1[0], &in_buffer1[max_size - 32*16*16]);
-    /* LIF1 */
-    lif1_step(&in_buffer1[max_size - 32*16*16], &in_buffer1[0] /* 임시 버퍼 재사용: 모양[32][16][16] */);
+    // Pool1: Conv1 출력 [32][32][32] -> pool1_out [32][16][16]
+    int16_t *pool1_out = &buf[MAX_FEATURE_SIZE - 32 * 16 * 16];
+    avgpool2d_2x2_32x32(buf, pool1_out);
 
-    /* Conv2: 입력은 LIF1의 spk_out -> g_conv2_out에 다시 덮어쓰지 않도록 주의 */
-    conv2_forward(&in_buffer1[0], &in_buffer1[max_size - 64*16*16]);
-    /* Pool2 */
-    avgpool2d_2x2_16x16(&in_buffer1[max_size - 64*16*16], &in_buffer1[0]);
-    /* LIF2 */
-    lif2_step(&in_buffer1[0], &in_buffer1[max_size - 64*8*8] /* 임시 [64][8][8] 공간 필요하면 별도로 두어도 됨 */);
-    /* Flatten */
-    // flatten_64x8x8_to_4096((const float (*)[8][8])g_pool1_out, g_flat);
-    /* FC */
-    linear_fc_4096_10(&in_buffer1[max_size - 64*8*8], &in_buffer1[0]);
-    /* LIF_out */
-    lif_out_step(&in_buffer1[0], spk_out, mem_out);
+    // LIF1: in [32][16][16] -> spk1_out [32][16][16] (buf 앞쪽 재사용)
+    int16_t *lif1_spk = buf;  // 크기 32*16*16
+    lif1_step(pool1_out, lif1_spk);
+
+    // Conv2: in lif1_spk [32][16][16] -> conv2_out [64][16][16]
+    int16_t *conv2_out = &buf[MAX_FEATURE_SIZE - 64 * 16 * 16];
+    conv2_forward(lif1_spk, conv2_out);
+
+    // Pool2: [64][16][16] -> pool2_out [64][8][8] (buf 앞쪽 재사용)
+    int16_t *pool2_out = buf; // 크기 64*8*8
+    avgpool2d_2x2_16x16(conv2_out, pool2_out);
+
+    // LIF2: in [64][8][8] -> spk2_out [64][8][8] (buf 뒤쪽 일부 사용)
+    int16_t *lif2_spk = &buf[MAX_FEATURE_SIZE - 64 * 8 * 8];
+    lif2_step(pool2_out, lif2_spk);
+
+    // FC: in lif2_spk (연속 4096 = 64*8*8) -> fc_out[10] (buf 앞쪽)
+    int16_t *fc_out = buf;
+    linear_fc_4096_10(lif2_spk, fc_out);
+
+    // LIF_out: fc_out[10] -> spk_out[10], mem_out[10]
+    lif_out_step(fc_out, spk_out, mem_out);
 }

@@ -45,12 +45,11 @@ net = nn.Sequential(
     snn.Leaky(beta=beta, spike_grad=spike_grad,
               init_hidden=True, output=True)
 )
+
 # 학습된 QAT 체크포인트 로드
 utils.reset(net)
 net.load_state_dict(torch.load("0096_acc50_snn_cifar10.pth", map_location="cpu"))
 net.eval()
-# net[0].weight_quant.scale()
-# net[0].int_weight()
 
 # ---------------------------
 # 헬퍼 함수들
@@ -87,6 +86,7 @@ def numpy_to_c_int_array(name: str, arr: np.ndarray, c_type: str = "int8_t") -> 
     lines.append("")
     return "\n".join(lines)
 
+# (float 기반 배열/스칼라는 더 이상 사용하지 않지만, 필요시를 위해 남겨둠)
 def numpy_to_c_float_array(name: str, arr: np.ndarray, c_type: str = "float") -> str:
     arr = np.asarray(arr, dtype=np.float32)
     dim_str = shape_to_c_dims(arr)
@@ -130,6 +130,25 @@ def quantize_int8(arr: np.ndarray):
         q = np.clip(q, -128, 127).astype(np.int8)
     return q, scale
 
+# ---- 새로 추가: float -> Q15(int16) 변환, int 스칼라 출력 ----
+
+def float_to_q15(x: np.ndarray) -> np.ndarray:
+    """
+    float -> Q15(int16) 고정소수점 변환
+    실제 값 ≈ q / 2^15
+    """
+    arr = np.asarray(x, dtype=np.float32)
+    q = np.round(arr * (1 << 15)).astype(np.int32)
+    q = np.clip(q, -32768, 32767).astype(np.int16)
+    return q
+
+def numpy_to_c_int_scalar(name: str, value: int, c_type: str = "int16_t") -> str:
+    """
+    단일 정수 스칼라를 C 코드로 출력
+    ex) const int16_t snn_lif1_beta = 25600;
+    """
+    return f"const {c_type} {name} = {int(value)};\n"
+
 #%%
 def export_quant_snn_to_c_and_h(net: nn.Sequential,
                                 c_filename: str = "quant_snn_weights.c",
@@ -137,11 +156,18 @@ def export_quant_snn_to_c_and_h(net: nn.Sequential,
                                 var_prefix: str = "snn",
                                 header_guard: str = "QUANT_SNN_WEIGHTS_H"):
     """
-    Conv/Linear:
-      - weight : layer.int_weight(), layer.weight_quant.scale()
-      - bias   : float bias를 직접 int8 + scale 로 양자화 (quantize_int8 사용)
+    MCU / CMSIS-NN을 고려한 순수 int export.
+
+    Conv / Linear:
+      - weight      : layer.int_weight() -> int8_t
+      - weight_scale: weight_quant.scale() (float) -> Q15(int16_t)
+                      실제값 ≈ weight_scale / 2^15
+      - bias        : float bias -> (int8_t bias, Q15(int16_t) bias_scale)
+
     LIF:
-      - beta, threshold : float scalar 로 export
+      - beta, threshold : float scalar -> Q15(int16_t)
+
+    생성되는 C/H 코드에는 float 타입/리터럴이 없음.
     """
 
     # net 구조 인덱스 고정
@@ -154,28 +180,41 @@ def export_quant_snn_to_c_and_h(net: nn.Sequential,
 
     # ----------------- C 소스(.c) -----------------
     c_parts = []
-    c_parts.append("/* Auto-generated quantized SNN weights (definition) */")
+    c_parts.append("/* Auto-generated quantized SNN weights (definition, int-only) */")
     c_parts.append(f'#include "{os.path.basename(h_filename)}"')
+    c_parts.append("")
+    c_parts.append("/* All scales and LIF parameters are Q15 fixed-point (value / 2^15). */")
     c_parts.append("")
 
     # ---- Conv1 ----
     conv1_w_int = tensor_to_numpy(conv1.int_weight())              # int8
     conv1_w_scale = tensor_to_numpy(conv1.weight_quant.scale())    # float or tensor
     conv1_b_float = tensor_to_numpy(conv1.bias)                    # float
-    conv1_b_int, conv1_b_scale = quantize_int8(conv1_b_float)      # int8 + scale
+    conv1_b_int, conv1_b_scale = quantize_int8(conv1_b_float)      # int8 + float scale
+
+    conv1_w_scale_q15 = float_to_q15(np.array(conv1_w_scale, ndmin=1))
+    conv1_b_scale_q15 = float_to_q15(np.array([conv1_b_scale]))[0]
 
     c_parts.append("// Conv1")
     c_parts.append(numpy_to_c_int_array(f"{var_prefix}_conv1_weight", conv1_w_int, "int8_t"))
 
-    if conv1_w_scale.size == 1:
-        c_parts.append(numpy_to_c_float_scalar(f"{var_prefix}_conv1_weight_scale",
-                                               float(conv1_w_scale)))
+    if conv1_w_scale_q15.size == 1:
+        c_parts.append(
+            numpy_to_c_int_scalar(f"{var_prefix}_conv1_weight_scale",
+                                  int(conv1_w_scale_q15[0]), "int16_t")
+        )
     else:
-        c_parts.append(numpy_to_c_float_array(f"{var_prefix}_conv1_weight_scale",
-                                              conv1_w_scale, "float"))
+        c_parts.append(
+            numpy_to_c_int_array(f"{var_prefix}_conv1_weight_scale",
+                                 conv1_w_scale_q15, "int16_t")
+        )
 
     c_parts.append(numpy_to_c_int_array(f"{var_prefix}_conv1_bias", conv1_b_int, "int8_t"))
-    c_parts.append(numpy_to_c_float_scalar(f"{var_prefix}_conv1_bias_scale", conv1_b_scale))
+    c_parts.append(
+        numpy_to_c_int_scalar(f"{var_prefix}_conv1_bias_scale",
+                              int(conv1_b_scale_q15), "int16_t")
+    )
+    c_parts.append("")
 
     # ---- Conv2 ----
     conv2_w_int = tensor_to_numpy(conv2.int_weight())
@@ -183,18 +222,29 @@ def export_quant_snn_to_c_and_h(net: nn.Sequential,
     conv2_b_float = tensor_to_numpy(conv2.bias)
     conv2_b_int, conv2_b_scale = quantize_int8(conv2_b_float)
 
+    conv2_w_scale_q15 = float_to_q15(np.array(conv2_w_scale, ndmin=1))
+    conv2_b_scale_q15 = float_to_q15(np.array([conv2_b_scale]))[0]
+
     c_parts.append("// Conv2")
     c_parts.append(numpy_to_c_int_array(f"{var_prefix}_conv2_weight", conv2_w_int, "int8_t"))
 
-    if conv2_w_scale.size == 1:
-        c_parts.append(numpy_to_c_float_scalar(f"{var_prefix}_conv2_weight_scale",
-                                               float(conv2_w_scale)))
+    if conv2_w_scale_q15.size == 1:
+        c_parts.append(
+            numpy_to_c_int_scalar(f"{var_prefix}_conv2_weight_scale",
+                                  int(conv2_w_scale_q15[0]), "int16_t")
+        )
     else:
-        c_parts.append(numpy_to_c_float_array(f"{var_prefix}_conv2_weight_scale",
-                                              conv2_w_scale, "float"))
+        c_parts.append(
+            numpy_to_c_int_array(f"{var_prefix}_conv2_weight_scale",
+                                 conv2_w_scale_q15, "int16_t")
+        )
 
     c_parts.append(numpy_to_c_int_array(f"{var_prefix}_conv2_bias", conv2_b_int, "int8_t"))
-    c_parts.append(numpy_to_c_float_scalar(f"{var_prefix}_conv2_bias_scale", conv2_b_scale))
+    c_parts.append(
+        numpy_to_c_int_scalar(f"{var_prefix}_conv2_bias_scale",
+                              int(conv2_b_scale_q15), "int16_t")
+    )
+    c_parts.append("")
 
     # ---- FC (QuantLinear) ----
     fc_w_int = tensor_to_numpy(fc.int_weight())
@@ -202,37 +252,63 @@ def export_quant_snn_to_c_and_h(net: nn.Sequential,
     fc_b_float = tensor_to_numpy(fc.bias)
     fc_b_int, fc_b_scale = quantize_int8(fc_b_float)
 
+    fc_w_scale_q15 = float_to_q15(np.array(fc_w_scale, ndmin=1))
+    fc_b_scale_q15 = float_to_q15(np.array([fc_b_scale]))[0]
+
     c_parts.append("// FC")
     c_parts.append(numpy_to_c_int_array(f"{var_prefix}_fc_weight", fc_w_int, "int8_t"))
 
-    if fc_w_scale.size == 1:
-        c_parts.append(numpy_to_c_float_scalar(f"{var_prefix}_fc_weight_scale",
-                                               float(fc_w_scale)))
+    if fc_w_scale_q15.size == 1:
+        c_parts.append(
+            numpy_to_c_int_scalar(f"{var_prefix}_fc_weight_scale",
+                                  int(fc_w_scale_q15[0]), "int16_t")
+        )
     else:
-        c_parts.append(numpy_to_c_float_array(f"{var_prefix}_fc_weight_scale",
-                                              fc_w_scale, "float"))
+        c_parts.append(
+            numpy_to_c_int_array(f"{var_prefix}_fc_weight_scale",
+                                 fc_w_scale_q15, "int16_t")
+        )
 
     c_parts.append(numpy_to_c_int_array(f"{var_prefix}_fc_bias", fc_b_int, "int8_t"))
-    c_parts.append(numpy_to_c_float_scalar(f"{var_prefix}_fc_bias_scale", fc_b_scale))
+    c_parts.append(
+        numpy_to_c_int_scalar(f"{var_prefix}_fc_bias_scale",
+                              int(fc_b_scale_q15), "int16_t")
+    )
+    c_parts.append("")
 
-    # ---- LIF parameters ----
-    c_parts.append("// LIF parameters (float)")
-    c_parts.append(numpy_to_c_float_scalar(f"{var_prefix}_lif1_beta", float(lif1.beta)))
-    c_parts.append(numpy_to_c_float_scalar(f"{var_prefix}_lif2_beta", float(lif2.beta)))
-    c_parts.append(numpy_to_c_float_scalar(f"{var_prefix}_lif_out_beta", float(lif_out.beta)))
-    c_parts.append(numpy_to_c_float_scalar(f"{var_prefix}_lif1_threshold", float(lif1.threshold)))
-    c_parts.append(numpy_to_c_float_scalar(f"{var_prefix}_lif2_threshold", float(lif2.threshold)))
-    c_parts.append(numpy_to_c_float_scalar(f"{var_prefix}_lif_out_threshold", float(lif_out.threshold)))
+    # ---- LIF parameters (Q15) ----
+    lif1_beta_q15      = float_to_q15(np.array([float(lif1.beta)]))[0]
+    lif2_beta_q15      = float_to_q15(np.array([float(lif2.beta)]))[0]
+    lif_out_beta_q15   = float_to_q15(np.array([float(lif_out.beta)]))[0]
+    lif1_th_q15        = float_to_q15(np.array([float(lif1.threshold)]))[0]
+    lif2_th_q15        = float_to_q15(np.array([float(lif2.threshold)]))[0]
+    lif_out_th_q15     = float_to_q15(np.array([float(lif_out.threshold)]))[0]
+
+    c_parts.append("// LIF parameters (Q15 fixed-point)")
+    c_parts.append(numpy_to_c_int_scalar(f"{var_prefix}_lif1_beta",
+                                         int(lif1_beta_q15), "int16_t"))
+    c_parts.append(numpy_to_c_int_scalar(f"{var_prefix}_lif2_beta",
+                                         int(lif2_beta_q15), "int16_t"))
+    c_parts.append(numpy_to_c_int_scalar(f"{var_prefix}_lif_out_beta",
+                                         int(lif_out_beta_q15), "int16_t"))
+    c_parts.append(numpy_to_c_int_scalar(f"{var_prefix}_lif1_threshold",
+                                         int(lif1_th_q15), "int16_t"))
+    c_parts.append(numpy_to_c_int_scalar(f"{var_prefix}_lif2_threshold",
+                                         int(lif2_th_q15), "int16_t"))
+    c_parts.append(numpy_to_c_int_scalar(f"{var_prefix}_lif_out_threshold",
+                                         int(lif_out_th_q15), "int16_t"))
 
     c_src = "\n".join(c_parts)
 
     # ----------------- 헤더(.h) -----------------
     h_parts = []
-    h_parts.append("/* Auto-generated quantized SNN weights (declaration) */")
+    h_parts.append("/* Auto-generated quantized SNN weights (declaration, int-only) */")
     h_parts.append(f"#ifndef {header_guard}")
     h_parts.append(f"#define {header_guard}")
     h_parts.append("")
     h_parts.append("#include <stdint.h>")
+    h_parts.append("")
+    h_parts.append("/* All scales and LIF parameters are Q15 fixed-point (value / 2^15). */")
     h_parts.append("")
 
     # Conv1
@@ -243,18 +319,18 @@ def export_quant_snn_to_c_and_h(net: nn.Sequential,
     h_parts.append(
         f"extern const int8_t {var_prefix}_conv1_weight{conv1_w_dims};")
 
-    if conv1_w_scale.size == 1:
+    if conv1_w_scale_q15.size == 1:
         h_parts.append(
-            f"extern const float {var_prefix}_conv1_weight_scale;")
+            f"extern const int16_t {var_prefix}_conv1_weight_scale;")
     else:
-        conv1_ws_dims = shape_to_c_dims(conv1_w_scale)
+        conv1_ws_dims = shape_to_c_dims(conv1_w_scale_q15)
         h_parts.append(
-            f"extern const float {var_prefix}_conv1_weight_scale{conv1_ws_dims};")
+            f"extern const int16_t {var_prefix}_conv1_weight_scale{conv1_ws_dims};")
 
     h_parts.append(
         f"extern const int8_t {var_prefix}_conv1_bias{conv1_b_dims};")
     h_parts.append(
-        f"extern const float {var_prefix}_conv1_bias_scale;")
+        f"extern const int16_t {var_prefix}_conv1_bias_scale;")
     h_parts.append("")
 
     # Conv2
@@ -265,18 +341,18 @@ def export_quant_snn_to_c_and_h(net: nn.Sequential,
     h_parts.append(
         f"extern const int8_t {var_prefix}_conv2_weight{conv2_w_dims};")
 
-    if conv2_w_scale.size == 1:
+    if conv2_w_scale_q15.size == 1:
         h_parts.append(
-            f"extern const float {var_prefix}_conv2_weight_scale;")
+            f"extern const int16_t {var_prefix}_conv2_weight_scale;")
     else:
-        conv2_ws_dims = shape_to_c_dims(conv2_w_scale)
+        conv2_ws_dims = shape_to_c_dims(conv2_w_scale_q15)
         h_parts.append(
-            f"extern const float {var_prefix}_conv2_weight_scale{conv2_ws_dims};")
+            f"extern const int16_t {var_prefix}_conv2_weight_scale{conv2_ws_dims};")
 
     h_parts.append(
         f"extern const int8_t {var_prefix}_conv2_bias{conv2_b_dims};")
     h_parts.append(
-        f"extern const float {var_prefix}_conv2_bias_scale;")
+        f"extern const int16_t {var_prefix}_conv2_bias_scale;")
     h_parts.append("")
 
     # FC
@@ -287,28 +363,28 @@ def export_quant_snn_to_c_and_h(net: nn.Sequential,
     h_parts.append(
         f"extern const int8_t {var_prefix}_fc_weight{fc_w_dims};")
 
-    if fc_w_scale.size == 1:
+    if fc_w_scale_q15.size == 1:
         h_parts.append(
-            f"extern const float {var_prefix}_fc_weight_scale;")
+            f"extern const int16_t {var_prefix}_fc_weight_scale;")
     else:
-        fc_ws_dims = shape_to_c_dims(fc_w_scale)
+        fc_ws_dims = shape_to_c_dims(fc_w_scale_q15)
         h_parts.append(
-            f"extern const float {var_prefix}_fc_weight_scale{fc_ws_dims};")
+            f"extern const int16_t {var_prefix}_fc_weight_scale{fc_ws_dims};")
 
     h_parts.append(
         f"extern const int8_t {var_prefix}_fc_bias{fc_b_dims};")
     h_parts.append(
-        f"extern const float {var_prefix}_fc_bias_scale;")
+        f"extern const int16_t {var_prefix}_fc_bias_scale;")
     h_parts.append("")
 
-    # LIF
-    h_parts.append("// LIF parameters (float)")
-    h_parts.append(f"extern const float {var_prefix}_lif1_beta;")
-    h_parts.append(f"extern const float {var_prefix}_lif2_beta;")
-    h_parts.append(f"extern const float {var_prefix}_lif_out_beta;")
-    h_parts.append(f"extern const float {var_prefix}_lif1_threshold;")
-    h_parts.append(f"extern const float {var_prefix}_lif2_threshold;")
-    h_parts.append(f"extern const float {var_prefix}_lif_out_threshold;")
+    # LIF (Q15)
+    h_parts.append("// LIF parameters (Q15 fixed-point)")
+    h_parts.append(f"extern const int16_t {var_prefix}_lif1_beta;")
+    h_parts.append(f"extern const int16_t {var_prefix}_lif2_beta;")
+    h_parts.append(f"extern const int16_t {var_prefix}_lif_out_beta;")
+    h_parts.append(f"extern const int16_t {var_prefix}_lif1_threshold;")
+    h_parts.append(f"extern const int16_t {var_prefix}_lif2_threshold;")
+    h_parts.append(f"extern const int16_t {var_prefix}_lif_out_threshold;")
     h_parts.append("")
 
     h_parts.append(f"#endif /* {header_guard} */")
@@ -323,14 +399,10 @@ def export_quant_snn_to_c_and_h(net: nn.Sequential,
     with open(h_filename, "w") as f:
         f.write(h_src)
 
-    print(f"Generated: {c_filename}, {h_filename}")
+    print(f"Generated (int-only): {c_filename}, {h_filename}")
 
 # %%
 if __name__ == "__main__":
-    # utils.reset(net)
-    # net.load_state_dict(torch.load("acc33_0001_snn_cifar10.pth", map_location="cpu"))
-    # net.eval()
-
     export_quant_snn_to_c_and_h(
         net,
         c_filename="snn_weights.c",

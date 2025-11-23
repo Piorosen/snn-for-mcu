@@ -74,3 +74,52 @@ if __name__ == "__main__":
 # print("label:", label)
 
 # %%
+#%%
+import os
+from PIL import Image
+from torchvision import datasets, transforms
+
+# -----------------------------------
+# 1) CIFAR10 로드 (ToTensor: [0,1] float32, shape [3,32,32])
+# -----------------------------------
+transform = transforms.ToTensor()
+
+dataset = datasets.CIFAR10(
+    root="./data",
+    train=True,
+    download=True,
+    transform=transform,
+)
+
+# -----------------------------------
+# 2) JPG 저장 함수
+#    파일명 규칙: f"{index:04d}_{label:04d}.jpg"
+#    예: 0000_0003.jpg
+# -----------------------------------
+def save_cifar_jpg(dataset, out_dir, max_count=1000):
+    os.makedirs(out_dir, exist_ok=True)
+
+    for index, (img, label) in enumerate(dataset):
+        if index >= max_count:
+            break
+
+        # img: torch.Tensor [3,32,32], float32, [0,1]
+        # -> numpy [H,W,C], uint8 [0,255]
+        img_np = (img.numpy().transpose(1, 2, 0) * 255).clip(0, 255).astype("uint8")
+
+        img_pil = Image.fromarray(img_np)
+
+        # 파일명: index와 label을 각각 4자리 zero-padding
+        filename = f"{index:04d}_{label:04d}.jpg"
+        path = os.path.join(out_dir, filename)
+
+        img_pil.save(path, format="JPEG", quality=95)
+
+    print(f"Saved {min(max_count, len(dataset))} images to {out_dir}")
+
+
+if __name__ == "__main__":
+    # train set에서 앞 1000장 JPG로 저장
+    save_cifar_jpg(dataset, out_dir="./cifar_jpg", max_count=1000)
+
+# %%

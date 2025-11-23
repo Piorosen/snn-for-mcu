@@ -10,9 +10,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(SOURCES
-    main.cpp
     src/snn_weights.c
     src/snn.c
+    main.cpp
 )
 
 set(HEADERS
