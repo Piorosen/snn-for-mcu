@@ -6,3 +6,5 @@ dataset/
 *.pth
 *.png
 build
+.cache/
+build-release/

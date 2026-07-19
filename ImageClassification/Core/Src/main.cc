@@ -326,7 +326,8 @@ int main(void)
 					   calc[5], calc[6], calc[7], calc[8], calc[9]);
 			  BSP_LCD_DisplayStringAt(0, LINE(7), (uint8_t*)lcd_output_string, LEFT_MODE);
 
-			  float max_val = calc[0];
+			  pred = 0;
+			  int max_val = calc[0];
 			  for (int i = 1; i < 10; ++i) {
 				  if (calc[i] > max_val) {
 					  max_val = calc[i];

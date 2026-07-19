@@ -1,0 +1,34 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Configure (CMake)",
+            "type": "shell",
+            "command": "/opt/homebrew/bin/cmake -S . -B build -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/arm-none-eabi.cmake -DCMAKE_BUILD_TYPE=Debug",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "/opt/homebrew/bin/cmake --build build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"]
+        },
+        {
+            "label": "Flash (STM32_Programmer_CLI)",
+            "type": "shell",
+            "command": "'/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.cubeprogrammer.macosaarch64_1.0.100.202603051304/tools/bin/STM32_Programmer_CLI' -c port=SWD -w build/ImageClassification.bin 0x08000000 -v -rst",
+            "dependsOn": "Build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Clean",
+            "type": "shell",
+            "command": "/opt/homebrew/bin/cmake --build build --target clean",
+            "problemMatcher": []
+        }
+    ]
+}
