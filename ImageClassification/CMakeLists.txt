@@ -3,8 +3,12 @@ cmake_minimum_required(VERSION 3.20)
 project(ImageClassification C CXX ASM)
 
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)   # TFLite Micro 요구
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# ON: TFLite Micro 런타임(int16x8 CMSIS-NN 커널 + LIF 커스텀 오퍼)으로 SNN 실행
+# OFF: 수제 Conv+Pool+LIF 퓨전 커널 경로 (더 빠름, snn.c)
+option(SNN_USE_TFLM "SNN을 TFLite Micro 런타임으로 실행" ON)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
@@ -42,13 +46,49 @@ file(GLOB LIBJPEG_SOURCES Middlewares/Third_Party/LibJPEG/source/*.c)
 # CMSIS-NN: TFLite Micro가 Cortex-M에서 쓰는 가속 커널 (SMLAD DSP 경로)
 file(GLOB_RECURSE CMSIS_NN_SOURCES third_party/cmsis_nn/Source/*.c)
 
+if(SNN_USE_TFLM)
+    # --- SNN 경로: TFLite Micro 런타임 ---
+    set(SNN_IMPL_SOURCES
+        Core/Src/snn_tflm.cc
+        Core/Src/snn_model_data.cc
+    )
+
+    file(GLOB TFLM_SOURCES
+        tensorflow-lite/tensorflow/lite/micro/*.cc
+        tensorflow-lite/tensorflow/lite/micro/arena_allocator/*.cc
+        tensorflow-lite/tensorflow/lite/micro/memory_planner/*.cc
+        tensorflow-lite/tensorflow/lite/micro/tflite_bridge/*.cc
+        tensorflow-lite/tensorflow/lite/micro/kernels/*.cc
+        tensorflow-lite/tensorflow/lite/micro/kernels/cmsis_nn/*.cc
+        tensorflow-lite/tensorflow/lite/core/c/common.cc
+        tensorflow-lite/tensorflow/lite/core/api/*.cc
+        tensorflow-lite/tensorflow/lite/kernels/internal/*.cc
+        tensorflow-lite/tensorflow/lite/kernels/internal/reference/*.cc
+        tensorflow-lite/tensorflow/lite/kernels/kernel_util.cc
+        tensorflow-lite/tensorflow/lite/schema/schema_utils.cc
+    )
+    # 테스트/모크 제외
+    list(FILTER TFLM_SOURCES EXCLUDE REGEX "(test_helpers|test_helper_custom_ops|fake_micro_context|mock_micro_graph|recording_micro|kernel_runner)")
+    # CMSIS-NN 변형이 대체하는 레퍼런스 커널 제외 (심볼 중복 방지)
+    foreach(k add conv depthwise_conv fully_connected mul pooling softmax svdf unidirectional_sequence_lstm)
+        list(REMOVE_ITEM TFLM_SOURCES
+             ${CMAKE_CURRENT_SOURCE_DIR}/tensorflow-lite/tensorflow/lite/micro/kernels/${k}.cc)
+    endforeach()
+else()
+    # --- SNN 경로: 수제 퓨전 커널 직접 호출 (TFLM 없이) ---
+    set(SNN_IMPL_SOURCES
+        Core/Src/snn.c
+        Core/Src/snn_weights_fused.c
+    )
+    set(TFLM_SOURCES "")
+endif()
+
 set(CORE_SOURCES
+    ${SNN_IMPL_SOURCES}
     Core/Src/main.cc
-    Core/Src/snn.c
-    Core/Src/snn_conv_pool_lif_s16.c
+    Core/Src/snn_conv_pool_lif_s16.c   # 퓨전 커널 (TFLM 커스텀 오퍼도 이걸 호출)
     Core/Src/snn_encode.c
     Core/Src/snn_lif_s16.c
-    Core/Src/snn_weights_fused.c
     Core/Src/snn_weights.c
     Core/Src/decode.c
     Core/Src/jdata_conf.c
@@ -69,6 +109,7 @@ add_executable(${PROJECT_NAME}.elf
     ${FATFS_SOURCES}
     ${LIBJPEG_SOURCES}
     ${CMSIS_NN_SOURCES}
+    ${TFLM_SOURCES}
 )
 
 target_include_directories(${PROJECT_NAME}.elf PRIVATE
@@ -84,6 +125,20 @@ target_include_directories(${PROJECT_NAME}.elf PRIVATE
     Utilities/Fonts
     third_party/cmsis_nn/Include
 )
+
+if(SNN_USE_TFLM)
+    target_include_directories(${PROJECT_NAME}.elf PRIVATE
+        tensorflow-lite
+        third_party/flatbuffers/include
+        third_party/gemmlowp
+        third_party/ruy
+        third_party/cmsis_nn   # TFLM cmsis_nn 래퍼가 "Include/..." 형태로 참조
+    )
+    target_compile_definitions(${PROJECT_NAME}.elf PRIVATE
+        TF_LITE_STATIC_MEMORY
+        CMSIS_NN   # TFLM 커널 헤더의 CMSIS-NN 변형 선언 활성화
+    )
+endif()
 
 target_compile_definitions(${PROJECT_NAME}.elf PRIVATE
     USE_HAL_DRIVER
