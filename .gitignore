@@ -8,3 +8,4 @@ dataset/
 build
 .cache/
 build-release/
+build*/

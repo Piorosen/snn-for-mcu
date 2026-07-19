@@ -18,11 +18,17 @@ extern "C" {
 // LIF 상태 리셋
 void snn_reset_state(void);
 
-// data  : [B*C*H*W] 크기의 입력 (0~255)
-// spikes: [T * B * C * H * W] 크기의 출력 버퍼 (0 또는 1 저장)
+// CMSIS-NN 가속 초기화: requantize 파라미터(mult/shift/bias64) 계산.
+// (퓨전 가중치는 빌드타임 생성되어 FLASH 상주 — tools/gen_fused_weights.c)
+// snn_forward_step 최초 호출 시 자동 수행되지만, 부팅 시 명시 호출 권장.
+void snn_accel_init(void);
+
+// 스파이크 인코딩 (rate coding, 구현: snn_encode.c)
+// data  : [B*H*W*C] 크기의 입력 (0~255), T는 무시됨 (한 타임스텝 분량 생성)
+// spikes: [B*H*W*C] 크기의 출력 버퍼 (0 또는 ONE_Q15 저장)
 void spiking_rate(
     const uint8_t* data,   // 입력 데이터 (0 ~ 255)
-    int16_t* spikes,       // 출력 스파이크 (0 또는 1)
+    int16_t* spikes,       // 출력 스파이크 (0 또는 ONE_Q15)
     int T, int B, int C, int H, int W,
     float gain,
     float offset
@@ -31,7 +37,8 @@ void spiking_rate(
 /**
  * 단일 time-step forward
  *
- * @param x       입력 이미지 [3][32][32], Q15 (실제값 ~= x / 2^15)
+ * @param x       입력 스파이크 [32][32][3] (HWC, JPEG 디코더 인터리브 출력과
+ *                동일 레이아웃), Q15 (0 또는 ONE_Q15)
  * @param spk_out 출력 스파이크 [10], Q15 (0 또는 ONE_Q15)
  * @param mem_out 출력 membrane [10], Q15
  */

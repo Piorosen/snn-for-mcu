@@ -252,6 +252,9 @@ int main(void)
   /*##-1- LCD Configuration ##################################################*/
   LCD_Config();
 
+  // CMSIS-NN 가속: 가중치 NHWC 퍼뮤트 + 양자화 파라미터 준비
+  snn_accel_init();
+
   static const char* labels[] = {"Plane", "Car",  "Bird",  "Cat",  "Deer",
                                  "Dog",   "Frog", "Horse", "Ship", "Truck"};
 
@@ -303,7 +306,7 @@ int main(void)
 				  1, 0
 			  );
 
-			  // spikes[t] -> [3][32][32] 라고 가정
+			  // spikes: [32][32][3] (HWC, JPEG 디코더 출력 레이아웃)
 			  snn_forward_step(spikes, spk_out, mem_out);
 
 			  // 이번 타임스텝 스파이크를 calc에 누적

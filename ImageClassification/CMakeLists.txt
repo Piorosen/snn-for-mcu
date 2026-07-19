@@ -34,9 +34,16 @@ set(FATFS_SOURCES
 # Fonts는 stm32746g_discovery_lcd.c가 .c째로 include하므로 별도 컴파일하지 않음
 file(GLOB LIBJPEG_SOURCES Middlewares/Third_Party/LibJPEG/source/*.c)
 
+# CMSIS-NN: TFLite Micro가 Cortex-M에서 쓰는 가속 커널 (SMLAD DSP 경로)
+file(GLOB_RECURSE CMSIS_NN_SOURCES third_party/cmsis_nn/Source/*.c)
+
 set(CORE_SOURCES
     Core/Src/main.cc
     Core/Src/snn.c
+    Core/Src/snn_conv_pool_lif_s16.c
+    Core/Src/snn_encode.c
+    Core/Src/snn_lif_s16.c
+    Core/Src/snn_weights_fused.c
     Core/Src/snn_weights.c
     Core/Src/decode.c
     Core/Src/jdata_conf.c
@@ -57,6 +64,7 @@ add_executable(${PROJECT_NAME}.elf
     ${BSP_COMPONENT_SOURCES}
     ${FATFS_SOURCES}
     ${LIBJPEG_SOURCES}
+    ${CMSIS_NN_SOURCES}
 )
 
 target_include_directories(${PROJECT_NAME}.elf PRIVATE
@@ -70,11 +78,13 @@ target_include_directories(${PROJECT_NAME}.elf PRIVATE
     Middlewares/Third_Party/FatFs/src
     Middlewares/Third_Party/LibJPEG/include
     Utilities/Fonts
+    third_party/cmsis_nn/Include
 )
 
 target_compile_definitions(${PROJECT_NAME}.elf PRIVATE
     USE_HAL_DRIVER
     STM32F746xx
+    ARM_MATH_DSP    # Cortex-M7 DSP 확장 → CMSIS-NN SMLAD 경로 활성화
 )
 
 target_compile_options(${PROJECT_NAME}.elf PRIVATE
