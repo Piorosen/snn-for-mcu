@@ -20,8 +20,13 @@ set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/STM32F746NGHX_FLASH.ld)
 file(GLOB HAL_SOURCES Drivers/STM32F7xx_HAL_Driver/Src/*.c)
 list(FILTER HAL_SOURCES EXCLUDE REGEX ".*_template\\.c$")
 
-file(GLOB BSP_SOURCES Drivers/BSP/STM32746G-Discovery/*.c)
-file(GLOB_RECURSE BSP_COMPONENT_SOURCES Drivers/BSP/Components/*.c)
+# 사용하는 BSP만 컴파일 (LCD+SDRAM 프레임버퍼, SD카드; 오디오/카메라/터치 등 미사용)
+set(BSP_SOURCES
+    Drivers/BSP/STM32746G-Discovery/stm32746g_discovery.c
+    Drivers/BSP/STM32746G-Discovery/stm32746g_discovery_lcd.c
+    Drivers/BSP/STM32746G-Discovery/stm32746g_discovery_sd.c
+    Drivers/BSP/STM32746G-Discovery/stm32746g_discovery_sdram.c
+)
 
 set(FATFS_SOURCES
     Middlewares/Third_Party/FatFs/src/ff.c
@@ -61,7 +66,6 @@ add_executable(${PROJECT_NAME}.elf
     ${CORE_SOURCES}
     ${HAL_SOURCES}
     ${BSP_SOURCES}
-    ${BSP_COMPONENT_SOURCES}
     ${FATFS_SOURCES}
     ${LIBJPEG_SOURCES}
     ${CMSIS_NN_SOURCES}

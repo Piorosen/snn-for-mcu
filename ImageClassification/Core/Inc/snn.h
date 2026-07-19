@@ -8,9 +8,6 @@
 extern "C" {
 #endif
 
-#define IMG_H   32
-#define IMG_W   32
-
 // Q15에서 1.0 에 해당하는 값 (32767 사용)
 #define ONE_Q15      32767
 #define Q15_SHIFT    15
