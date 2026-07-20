@@ -1,9 +1,13 @@
 \documentclass[preprint]{IEIE} % for review
 \usepackage{graphicx}
-\title{임베디드 리눅스 시스템을 이용한 향상된\\기능의 라우터 구현}
-\author{홍길동, 이몽룡 \\ 서울대학교 전기정보공학부 \\ e-mail : author@snu.ac.kr}
-\engtitle{Implementation of Improved Functional Router\\Using Embedded Linux System}
-\engauthor{Gil-Dong Hong and Mong-Ryong Lee \\ Seoul National University}
+% 참고문헌 항목 간 간격 최소화 (분량 조절)
+\makeatletter
+\renewcommand\@openbib@code{\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+\makeatother
+\title{초소형 MCU를 위한 스파이킹 신경망 컴파일러와\\Conv-AvgPool-LIF 퓨전 연산자: STM32F746 실측 연구}
+\author{차주형 \\ 과학기술연합대학원대학교(UST) \\ e-mail : chacha@ust.ac.kr}
+\engtitle{A Spiking Neural Network Compiler and a Fused Conv-AvgPool-LIF Operator\\for Tiny Microcontrollers: Measurements on an STM32F746}
+\engauthor{JooHyoung Cha \\ University of Science and Technology (UST)}
 \abstract{
 \input{Abstract}
 }
@@ -11,22 +15,28 @@
 \begin{document}
 \maketitle
 \makeabstract
-\section{서론}
+
 \input{01_Introduction}
 
-\section{본론}
-\subsection{StrongArm}
-\input{02_1_StrongArm}
+\input{02_Background}
 
-\subsection{리눅스}
+\input{03_Compiler}
 
-\section{구현}
-\input{03_Implementation}
+\section{Conv+AvgPool+LIF 퓨전 연산자}
+\input{04_Fusion}
 
-\section{결론 및 향후 연구 방향}
-\input{04_Conclusion}
+\section{실험 결과 및 검증}
+\input{05_Evaluation}
+
+\section{배포 가능 영역 분석}
+\input{06_Envelope}
+
+\section{결론 및 향후 연구}
+\input{07_Conclusion}
 
 \bibliographystyle{ieeetr}
+{\footnotesize
 \bibliography{references}
+}
 
 \end{document}

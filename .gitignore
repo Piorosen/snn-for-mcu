@@ -9,3 +9,20 @@ build
 .cache/
 build-release/
 build*/
+
+# macOS
+.DS_Store
+
+# 실험 산출물 (재생성 가능: EXPERIMENTS.md 참조)
+experiments/testset_hwc.bin
+experiments/host_tests/bin/
+
+# LaTeX 중간 파일 (paper_ieie — main.pdf는 커밋 대상)
+paper_ieie/*.aux
+paper_ieie/*.bbl
+paper_ieie/*.blg
+paper_ieie/*.fdb_latexmk
+paper_ieie/*.fls
+paper_ieie/*.log
+paper_ieie/*.out
+paper_ieie/*.synctex.gz

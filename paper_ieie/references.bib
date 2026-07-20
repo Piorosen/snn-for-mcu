@@ -1,62 +1,182 @@
-@manual{Intel:2000,
-  author = {{Intel Corporations}},
-  title = {Intel StrongArm SA-1110 Microprocessor Developer's Manual},
-  year = {2000},
-  month = jun
+% ------------------------------------------------------------------
+% references.bib — SNN-for-MCU 논문 (실존 문헌만, ieeetr 스타일용)
+% 키 목록:
+%   lecun1998gradient, krizhevsky2009cifar, maass1997networks,
+%   roy2019towards, neftci2019surrogate, eshraghian2023training,
+%   brevitas2023, david2021tflm, lai2018cmsisnn,
+%   jacob2018quantization, davies2018loihi, merolla2014truenorth,
+%   lin2020mcunet, banbury2021mlperftiny, wu2018stbp,
+%   rueckauer2017conversion, chen2018tvm, pedersen2024nir, st_rm0385
+% ------------------------------------------------------------------
+
+@article{lecun1998gradient,
+  author  = {Y. LeCun and L. Bottou and Y. Bengio and P. Haffner},
+  title   = {Gradient-based learning applied to document recognition},
+  journal = {Proceedings of the IEEE},
+  volume  = {86},
+  number  = {11},
+  pages   = {2278--2324},
+  year    = {1998}
 }
 
-@book{Park:2002,
-  author = {재호 박},
-  title = {IT Expert 임베디드 리눅스},
-  publisher = {한빛미디어},
-  year = {2002}
+@techreport{krizhevsky2009cifar,
+  author      = {A. Krizhevsky},
+  title       = {Learning Multiple Layers of Features from Tiny Images},
+  institution = {University of Toronto},
+  year        = {2009}
 }
 
-@misc{Trolltech,
-  title = {Trolltech Official Website},
-  howpublished = {\url{http://www.trolltech.com}},
-  note = {Accessed 2025-04-30}
+@article{maass1997networks,
+  author  = {W. Maass},
+  title   = {Networks of spiking neurons: The third generation of neural network models},
+  journal = {Neural Networks},
+  volume  = {10},
+  number  = {9},
+  pages   = {1659--1671},
+  year    = {1997}
 }
 
-@book{Lucid:2000,
-  author = {마이크 루키디스 and 앤디 오람},
-  title = {GNU 소프트웨어로 프로그래밍 하기},
-  editor = {이기동},
-  publisher = {한빛미디어},
-  year = {2000}
+@article{roy2019towards,
+  author  = {K. Roy and A. Jaiswal and P. Panda},
+  title   = {Towards spike-based machine intelligence with neuromorphic computing},
+  journal = {Nature},
+  volume  = {575},
+  number  = {7784},
+  pages   = {607--617},
+  year    = {2019}
 }
 
-@book{LeeYJ:2002,
-  author = {이연조},
-  title = {임베디드 리눅스 프로그래밍},
-  publisher = {PC Book},
-  year = {2002}
+@article{neftci2019surrogate,
+  author  = {E. O. Neftci and H. Mostafa and F. Zenke},
+  title   = {Surrogate gradient learning in spiking neural networks: Bringing the power of gradient-based optimization to spiking neural networks},
+  journal = {IEEE Signal Processing Magazine},
+  volume  = {36},
+  number  = {6},
+  pages   = {51--63},
+  year    = {2019}
 }
 
-@article{Joo:2001,
-  author = {주민규 and others},
-  title = {내장형 리눅스를 이용한 라우터의 설계 및 구현},
-  journal = {정보처리학회논문지},
-  volume = {8-A},
-  number = {4},
-  pages = {339--344},
-  year = {2001}
+@article{eshraghian2023training,
+  author  = {J. K. Eshraghian and M. Ward and E. O. Neftci and X. Wang and G. Lenz and G. Dwivedi and M. Bennamoun and D. S. Jeong and W. D. Lu},
+  title   = {Training spiking neural networks using lessons from deep learning},
+  journal = {Proceedings of the IEEE},
+  volume  = {111},
+  number  = {9},
+  pages   = {1016--1054},
+  year    = {2023}
 }
 
-@misc{KELP,
-  title = {KELP Project},
-  howpublished = {\url{http://www.kelp.or.kr}},
-  note = {Accessed 2025-04-30}
+@misc{brevitas2023,
+  author       = {A. Pappalardo},
+  title        = {Xilinx/brevitas},
+  howpublished = {Zenodo, doi:10.5281/zenodo.3333552},
+  year         = {2023}
 }
 
-@misc{KESL,
-  title = {KESL Project},
-  howpublished = {\url{http://www.kesl.org}},
-  note = {Accessed 2025-04-30}
+@inproceedings{david2021tflm,
+  author    = {R. David and J. Duke and A. Jain and V. {Janapa Reddi} and N. Jeffries and J. Li and N. Kreeger and I. Nappier and M. Natraj and T. Wang and P. Warden and R. Rhodes},
+  title     = {{TensorFlow Lite Micro}: Embedded machine learning for {TinyML} systems},
+  booktitle = {Proceedings of Machine Learning and Systems (MLSys)},
+  volume    = {3},
+  pages     = {800--811},
+  year      = {2021}
 }
 
-@misc{Falinux,
-  title = {Falinux Official Website},
-  howpublished = {\url{http://www.falinux.com}},
-  note = {Accessed 2025-04-30}
+@misc{lai2018cmsisnn,
+  author       = {L. Lai and N. Suda and V. Chandra},
+  title        = {{CMSIS-NN}: Efficient neural network kernels for {Arm Cortex-M} {CPUs}},
+  howpublished = {arXiv:1801.06601},
+  year         = {2018}
+}
+
+@inproceedings{jacob2018quantization,
+  author    = {B. Jacob and S. Kligys and B. Chen and M. Zhu and M. Tang and A. Howard and H. Adam and D. Kalenichenko},
+  title     = {Quantization and training of neural networks for efficient integer-arithmetic-only inference},
+  booktitle = {Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {2704--2713},
+  year      = {2018}
+}
+
+@article{furber2014spinnaker,
+  author  = {S. B. Furber and F. Galluppi and S. Temple and L. A. Plana},
+  title   = {The {SpiNNaker} project},
+  journal = {Proceedings of the IEEE},
+  volume  = {102},
+  number  = {5},
+  pages   = {652--665},
+  year    = {2014}
+}
+
+@article{davies2018loihi,
+  author  = {M. Davies and others},
+  title   = {Loihi: A neuromorphic manycore processor with on-chip learning},
+  journal = {IEEE Micro},
+  volume  = {38},
+  number  = {1},
+  pages   = {82--99},
+  year    = {2018}
+}
+
+@article{merolla2014truenorth,
+  author  = {P. A. Merolla and others},
+  title   = {A million spiking-neuron integrated circuit with a scalable communication network and interface},
+  journal = {Science},
+  volume  = {345},
+  number  = {6197},
+  pages   = {668--673},
+  year    = {2014}
+}
+
+@inproceedings{lin2020mcunet,
+  author    = {J. Lin and W.-M. Chen and Y. Lin and J. Cohn and C. Gan and S. Han},
+  title     = {{MCUNet}: Tiny deep learning on {IoT} devices},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2020}
+}
+
+@inproceedings{banbury2021mlperftiny,
+  author    = {C. Banbury and others},
+  title     = {{MLPerf Tiny} benchmark},
+  booktitle = {Proceedings of the NeurIPS Track on Datasets and Benchmarks},
+  year      = {2021}
+}
+
+@article{wu2018stbp,
+  author  = {Y. Wu and L. Deng and G. Li and J. Zhu and L. Shi},
+  title   = {Spatio-temporal backpropagation for training high-performance spiking neural networks},
+  journal = {Frontiers in Neuroscience},
+  volume  = {12},
+  pages   = {331},
+  year    = {2018}
+}
+
+@article{rueckauer2017conversion,
+  author  = {B. Rueckauer and I.-A. Lungu and Y. Hu and M. Pfeiffer and S.-C. Liu},
+  title   = {Conversion of continuous-valued deep networks to efficient event-driven networks for image classification},
+  journal = {Frontiers in Neuroscience},
+  volume  = {11},
+  pages   = {682},
+  year    = {2017}
+}
+
+@inproceedings{chen2018tvm,
+  author    = {T. Chen and T. Moreau and Z. Jiang and L. Zheng and E. Yan and H. Shen and M. Cowan and L. Wang and Y. Hu and L. Ceze and C. Guestrin and A. Krishnamurthy},
+  title     = {{TVM}: An automated end-to-end optimizing compiler for deep learning},
+  booktitle = {13th USENIX Symposium on Operating Systems Design and Implementation (OSDI 18)},
+  pages     = {578--594},
+  year      = {2018}
+}
+
+@article{pedersen2024nir,
+  author  = {J. E. Pedersen and S. Abreu and M. Jobst and others},
+  title   = {Neuromorphic intermediate representation: A unified instruction set for interoperable brain-inspired computing},
+  journal = {Nature Communications},
+  volume  = {15},
+  pages   = {8122},
+  year    = {2024}
+}
+
+@manual{st_rm0385,
+  title        = {{RM0385} Reference Manual: {STM32F75xxx} and {STM32F74xxx} advanced {Arm}-based 32-bit {MCUs}},
+  organization = {STMicroelectronics}
 }

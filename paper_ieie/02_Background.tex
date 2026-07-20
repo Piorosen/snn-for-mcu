@@ -1,0 +1,22 @@
+\section{배경 및 관련 연구}\label{sec:background}
+
+\subsection{스파이킹 신경망과 rate coding}
+
+SNN은 실수 활성값 대신 이진 스파이크 열로 정보를 전달하는 신경망이다\cite{maass1997networks}. 본 논문이 사용하는 LIF 뉴런의 이산 시간 동역학은 다음과 같다.
+\begin{equation}
+U[t] = \beta\, U[t-1] + I[t]
+\label{eq:lif-bg}
+\end{equation}
+\begin{equation}
+S[t] = \Theta\bigl(U[t]-\theta\bigr),\qquad U[t] \leftarrow U[t] - \theta\, S[t]
+\label{eq:lif-reset}
+\end{equation}
+여기서 $U$는 막전위, $\beta$는 감쇠 계수, $I[t]$는 시냅스 가중 합 입력, $\theta$는 임계값, $\Theta$는 단위 계단 함수이다. 발화 시 임계값을 차감하는 감산 리셋을 사용하며, 정수 도메인 구현과 reset delay 시맨틱은 IV장에서 상술한다. rate coding은 픽셀 강도 $x\in[0,1]$을 발화 확률로 해석하여 매 타임스텝 베르누이 표본 $\Pr(X[t]{=}1)=\mathrm{clip}(\gamma x+o,\,0,\,1)$을 추출한다. 따라서 추론 1회는 네트워크 전체를 $T$회 반복 실행하는 것이며, 지연시간은 $T$에 비례한다. 이 시간축 반복이 본 논문 설정($T{=}30$)에서 지연을 지배하는 요인이다. 학습 방법으로는 스파이크의 불연속성을 서러게이트 기울기로 우회하는 직접 학습\cite{neftci2019surrogate,wu2018stbp}과 ANN-SNN 변환\cite{rueckauer2017conversion}이 대표적이며, 본 논문은 snnTorch\cite{eshraghian2023training} 기반 직접 학습을 사용한다.
+
+\subsection{뉴로모픽 하드웨어와 TinyML 스택}
+
+SNN의 실행 기판으로는 Loihi\cite{davies2018loihi}, TrueNorth\cite{merolla2014truenorth} 같은 전용 뉴로모픽 칩이 대표적이나\cite{roy2019towards}, 이들은 전용 실리콘의 확보를 전제로 한다. ARM 코어에서 SNN을 소프트웨어로 실행한 선례로는 SpiNNaker\cite{furber2014spinnaker}가 있으나, 이 역시 대규모 시뮬레이션을 겨냥한 전용 플랫폼을 전제로 한다. 이와 대조적으로, 범용 MCU에서 심층 신경망을 실행하는 TinyML 스택이 존재한다. TFLM은 동적 할당 없이 정적 아레나 하나로 텐서와 상태를 관리하는 인터프리터형 런타임이고\cite{david2021tflm}, CMSIS-NN은 Cortex-M의 DSP 확장(듀얼 16비트 MAC 등)을 활용하는 최적화 커널 라이브러리다\cite{lai2018cmsisnn}. 정수 전용 추론은 활성과 가중치를 정수로 표현하고 실수 배율을 고정소수점 곱과 시프트(requantize)로 대체하며\cite{jacob2018quantization}, 양자화 인지 학습(QAT)은 학습 단계에서 양자화를 시뮬레이션하여 정확도 손실을 줄인다. MCUNet\cite{lin2020mcunet}과 MLPerf Tiny\cite{banbury2021mlperftiny}가 보여주듯 이 스택은 ANN에 대해서는 성숙해 있다. 한편 연산자 퓨전은 TVM\cite{chen2018tvm} 등 딥러닝 컴파일러의 표준 최적화 기법으로, 본 논문의 Conv+AvgPool+LIF 퓨전은 이 계보를 SNN 특유의 시간축 반복 구조에 적용한 것이다.
+
+\subsection{본 연구의 위치}
+
+SNN 소프트웨어 생태계에서는 NIR(Neuromorphic Intermediate Representation)가 시뮬레이터와 뉴로모픽 플랫폼 간 모델 교환을 위한 중간 표현을 제시한 바 있다\cite{pedersen2024nir}. 즉 SNN을 범용 프로세서에서 소프트웨어로 실행하는 시도 자체는 존재하지만, 이미 대규모로 보급된 단일 상용 MCU 위에서 표준 TinyML 스택과 통합하고, 커널 수준의 병목을 실측으로 규명하며, 비트 정확 검증까지 수행한 연구는 찾아보기 어렵다. 실제로 이 스택은 SNN에 대해 서론에서 요약한 세 가지 갭(LIF 연산자 부재, s16 DSP fast 경로의 커버리지 제약, 퓨전 int16 가중치 미지원)을 가지며, 그 기술적 상세와 해소 과정은 III--IV장에서 기술한다.

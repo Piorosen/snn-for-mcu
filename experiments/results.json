@@ -1,0 +1,140 @@
+{
+  "board": "STM32F746G-DISCO (Cortex-M7 @ 200 MHz, FPU sp, 320KB SRAM, 1MB Flash)",
+  "model": "LeNet-5급 SNN: Conv(3->32,5x5)+AvgPool+LIF -> Conv(32->64,5x5)+AvgPool+LIF -> FC(4096->10)+LIF, T=30, rate coding, CIFAR-10",
+  "timesteps": 30,
+  "method": "HAL_GetTick 계측(g_perf), ST-LINK HOTPLUG 메모리 판독, 이미지당 30타임스텝, 다수 이미지 평균",
+  "variants": {
+    "V1_scalar": {
+      "name": "Scalar (O3+LTO)",
+      "desc": "원본 CHW 스칼라 conv/pool/LIF, newlib rand 인코딩",
+      "images_avgd": 18,
+      "total_ms_per_image": 4494.2,
+      "nn_ms_per_image": 4422.7,
+      "ms_per_timestep": 147.4,
+      "ram_bytes": 251256,
+      "flash_bytes": 223556,
+      "note": "빌드는 O3+LTO 동일 조건. 인코딩은 원본 rand()"
+    },
+    "V2_tflm_cmsis": {
+      "name": "TFLM + CMSIS-NN (unfused)",
+      "desc": "TFLite Micro 표준 int16x8 커널(CONV_2D/AVG_POOL/FC=CMSIS-NN), LIF 커스텀(SIMD), LUT+xorshift 인코딩",
+      "images_avgd": 16,
+      "total_ms_per_image": 9641.4,
+      "nn_ms_per_image": 9570.0,
+      "ram_bytes": 186296,
+      "flash_bytes": 296052,
+      "arena_bytes": 131072,
+      "arena_used_bytes": 84544,
+      "note": "conv2(rhs=800>=512)가 CMSIS-NN s16 DSP fast 경로 제약으로 일반 C 커널 폴백 -> 스칼라보다 느림. 인코딩/LIF는 최적화판",
+      "ms_per_timestep": 319.0,
+      "preds_demo10": [
+        2,
+        1,
+        2,
+        3,
+        6,
+        2,
+        6,
+        7,
+        0,
+        2
+      ],
+      "demo10_correct": 5
+    },
+    "V3_tflm_fused": {
+      "name": "TFLM + Fused Conv+Pool+LIF (ours)",
+      "desc": "SNN_CONV_POOL_LIF 커스텀 오퍼(6x6/s2 int16 SMLALD 퓨전 커널), LIF 상태/스크래치 전부 아레나",
+      "images_avgd": 40,
+      "total_ms_per_image": 2407.0,
+      "nn_ms_per_image": 2335.7,
+      "ms_per_timestep": 77.9,
+      "ram_bytes": 268200,
+      "flash_bytes": 373860,
+      "arena_bytes": 262144,
+      "arena_used_bytes": 80288,
+      "preds_demo10": [
+        2,
+        1,
+        2,
+        3,
+        6,
+        2,
+        6,
+        7,
+        8,
+        1
+      ],
+      "demo10_correct": 6,
+      "note": "아레나 256KB 설정(실사용 80.3KB). RAM 수치는 여유 아레나 포함"
+    },
+    "V4_direct_fused": {
+      "name": "Fused kernel direct (no TFLM)",
+      "desc": "동일 퓨전 커널을 런타임 없이 직접 호출 (TFLM 오버헤드 분리용)",
+      "images_avgd": 41,
+      "total_ms_per_image": 2395.5,
+      "nn_ms_per_image": 2324.8,
+      "ram_bytes": 85512,
+      "flash_bytes": 325168,
+      "note": "예측 10개 V3와 완전 동일. TFLM 오버헤드 = 11.5ms/이미지(~0.5%)",
+      "ms_per_timestep": 77.5
+    }
+  },
+  "host_verification": {
+    "fused_identity": "6x6 퓨전 가중치 raw 누산 == 5x5 conv 4위치 합, 전 픽셀/채널 비트 일치",
+    "kernel_vs_ref": "퓨전 커널 vs 나이브 레퍼런스 30스텝x3발화율 비트 일치 (스칼라/SIMD목)",
+    "tflm_vs_ref": "TFLM 전체 파이프라인 vs 독립 레퍼런스 900개 출력 스파이크/막전위 비트 일치, 예측 3/3 동일",
+    "drift_vs_scalar": "퓨전 requantize(반올림 1회) vs 원본(절단+풀링 반올림): LIF1 스파이크 불일치 0.75% (임계값 근처 타이밍 플립), 최종 예측 영향 없음(호스트 3케이스)"
+  },
+  "lif_simd": {
+    "desc": "QADD16/SSUB16/SEL 듀얼레인 브랜치리스 LIF, 전수 검증 18.87M 조합 비트 일치"
+  },
+  "macs_per_timestep": {
+    "conv1_unfused": 2457600,
+    "conv2_unfused": 13107200,
+    "fc": 40960,
+    "conv1_fused": 884736,
+    "conv2_fused": 4718592
+  },
+  "additional_experiments": {
+    "E4_board_breakdown": {
+      "variant": "V3 (TFLM+fused)",
+      "images_avgd": 53,
+      "total_ms": 2404.8,
+      "encode_ms": 34.3,
+      "forward_ms": 2299.5,
+      "lcd_etc_ms": 71.0,
+      "encode_ms_per_step": 1.14,
+      "forward_ms_per_step": 76.65,
+      "per_image_std_ms": 0.5,
+      "note": "이미지별 링버퍼 16개 2404~2406ms — 결정적 워크로드"
+    },
+    "E1_testset_accuracy": {
+      "n": 10000,
+      "acc_t30": 0.5238,
+      "qat_float_sim_ref": 0.5072,
+      "note": "배포 정수(퓨전) 파이프라인, CIFAR-10 테스트셋 전체, 호스트 실행(커널 비트일치 검증 경로)"
+    },
+    "E2_T_sweep": {
+      "T5": 0.2311,
+      "T10": 0.4524,
+      "T15": 0.4889,
+      "T20": 0.5082,
+      "T25": 0.516,
+      "T30": 0.5238,
+      "note": "단일 패스 누적투표 체크포인트. 지연은 T에 선형(77.9ms/step)"
+    },
+    "E3_spike_density": {
+      "input": 0.477,
+      "lif1": 0.041,
+      "lif2": 0.034,
+      "note": "conv2 입력의 ~96%가 0 -> zero-skipping 잠재력 근거"
+    },
+    "E5_fused_vs_unfused": {
+      "n": 1000,
+      "pred_agreement": 0.758,
+      "acc_fused": 0.535,
+      "acc_unfused": 0.468,
+      "note": "동일 스파이크 입력 공급. 차이 원인: 반올림 횟수 + 비퓨전은 풀링 전 픽셀별 포화 클리핑(조기 클리핑), 퓨전은 풀링 후 1회 — 퓨전이 동적범위 보존에 유리"
+    }
+  }
+}
