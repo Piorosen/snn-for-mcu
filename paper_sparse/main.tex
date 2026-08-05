@@ -1,0 +1,38 @@
+\documentclass[preprint]{IEIE} % for review
+\usepackage{graphicx}
+% 참고문헌 항목 간 간격 최소화 (분량 조절)
+\makeatletter
+\renewcommand\@openbib@code{\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+\makeatother
+\title{범용 마이크로컨트롤러에서 스파이킹 신경망의\\이벤트 구동 이득 회수: 비트 동일 무곱셈 희소 커널의\\설계 원리와 STM32F746 실측}
+\author{차주형 \\ 과학기술연합대학원대학교(UST) \\ e-mail : chacha@ust.ac.kr}
+\engtitle{Reclaiming the Event-Driven Advantage of Spiking Neural Networks\\on a Commodity Microcontroller: Design Principles and Measurements\\of a Bit-Exact, Multiplication-Free Sparse Kernel}
+\engauthor{JooHyoung Cha \\ University of Science and Technology (UST)}
+\abstract{
+\input{Abstract}
+}
+
+\begin{document}
+\maketitle
+\makeabstract
+
+\input{01_Introduction}
+
+\input{02_RelatedWork}
+
+\input{03_Problem}
+
+\input{04_Design}
+
+\input{05_Evaluation}
+
+\input{06_Discussion}
+
+\input{07_Conclusion}
+
+\bibliographystyle{ieeetr}
+{\footnotesize
+\bibliography{references}
+}
+
+\end{document}

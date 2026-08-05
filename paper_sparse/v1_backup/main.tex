@@ -1,0 +1,36 @@
+\documentclass[preprint]{IEIE} % for review
+\usepackage{graphicx}
+% 참고문헌 항목 간 간격 최소화 (분량 조절)
+\makeatletter
+\renewcommand\@openbib@code{\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+\makeatother
+\title{스파이크 희소성을 이용한 무곱셈 합성곱 커널과 TCM 메모리 배치:\\STM32F746에서 스파이킹 신경망 추론의 6.1배 가속 실측 연구}
+\author{차주형 \\ 과학기술연합대학원대학교(UST) \\ e-mail : chacha@ust.ac.kr}
+\engtitle{A Multiplication-Free Convolution Kernel Exploiting Spike Sparsity\\with TCM Memory Placement: A Measured 6.1$\times$ SNN Inference Speedup on an STM32F746}
+\engauthor{JooHyoung Cha \\ University of Science and Technology (UST)}
+\abstract{
+\input{Abstract}
+}
+
+\begin{document}
+\maketitle
+\makeabstract
+
+\input{01_Introduction}
+
+\input{02_Background}
+
+\input{03_Bottleneck}
+
+\input{04_SparseKernel}
+
+\input{05_Evaluation}
+
+\input{06_Conclusion}
+
+\bibliographystyle{ieeetr}
+{\footnotesize
+\bibliography{references}
+}
+
+\end{document}

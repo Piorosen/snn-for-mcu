@@ -26,3 +26,13 @@ paper_ieie/*.fls
 paper_ieie/*.log
 paper_ieie/*.out
 paper_ieie/*.synctex.gz
+
+# LaTeX 중간 파일 (paper_sparse — main.pdf는 커밋 대상)
+paper_sparse/*.aux
+paper_sparse/*.bbl
+paper_sparse/*.blg
+paper_sparse/*.fdb_latexmk
+paper_sparse/*.fls
+paper_sparse/*.log
+paper_sparse/*.out
+paper_sparse/*.synctex.gz

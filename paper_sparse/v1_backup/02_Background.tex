@@ -1,0 +1,69 @@
+\section{배경: 대상 모델과 기존 구현}\label{sec:background}
+
+\subsection{모델과 정수 파이프라인}
+
+대상 모델은 선행 연구\cite{cha2026fusion}의 CIFAR-10 SNN이다:
+입력 $32{\times}32{\times}3$ $\rightarrow$ [Conv $5{\times}5$ +
+AvgPool $2{\times}2$ + LIF] $\times 2$ $\rightarrow$ FC
+$4096{\rightarrow}10$ $\rightarrow$ LIF. 입력은 rate coding으로
+타임스텝마다 이진 스파이크($0$ 또는 $32{,}767$, Q15의 1.0)로
+인코딩되고, LIF 뉴런은 Q15 고정소수점 감쇠($\beta{=}29{,}491
+\approx 0.9$), 임계값 $32{,}767$, 감산 리셋으로 동작한다.
+snnTorch\cite{eshraghian2023training}와
+Brevitas\cite{brevitas2023} QAT로 학습된 가중치는 빌드 타임에 정수로
+변환된다\cite{jacob2018quantization}.
+
+배포 시 각 Conv+AvgPool 쌍은 $6{\times}6$ stride-2 커널 하나로
+대수적으로 퓨전된다(평균의 $1/4$은 requantize 배율에 흡수). 퓨전
+가중치는 int8 4개의 합이므로 int16이다($|w|\le 508$). 타임스텝당
+일량은 표~\ref{tab:model}과 같이 5.64M MAC이고, $T{=}30$이므로
+이미지당 169.3M MAC이다. \textbf{CPL2가 전체 MAC의 83.6\%}를
+차지한다.
+
+\begin{table}[htbp]
+\centering
+\caption{퓨전 후 레이어 구성과 타임스텝당 MAC.}
+\label{tab:model}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{l l l r r}
+\hline
+레이어 & 입력 & 출력 & $r$(열 길이) & MAC/스텝 \\
+\hline
+CPL1 & $32{\times}32{\times}3$ & $16{\times}16{\times}32$ & 108 & 884,736 \\
+CPL2 & $16{\times}16{\times}32$ & $8{\times}8{\times}64$ & 1,152 & 4,718,592 \\
+FC & 4,096 & 10 & -- & 40,960 \\
+\hline
+\multicolumn{4}{l}{합계 (이미지당 $\times 30$)} & 5,644,288 \\
+\hline
+\end{tabular}
+\begin{flushleft}
+\footnotesize 주: $r = k_h k_w C_i$는 im2col 열 길이. CPL =
+Conv+AvgPool+LIF 퓨전 연산자.
+\end{flushleft}
+\end{table}
+
+\subsection{TFLM$\cdot$CMSIS-NN 통합 구조}
+
+퓨전 연산자는 TFLM 커스텀 연산자(\texttt{SNN\_CONV\_POOL\_LIF})로
+등록된다. 커널 본체는 CMSIS-NN의 im2col 구조를 따르되 내적을
+\texttt{\_\_SMLALD}(듀얼 $16{\times}16$ MAC, 64비트 누산)로 수행하고,
+requantize는 CMSIS-NN 지원 함수 \texttt{arm\_nn\_requantize\_s64}를
+사용하며, 직후 $2$픽셀$\times C_o$ 타일에 SIMD LIF 에필로그
+(\texttt{QADD16}/\texttt{SSUB16}/\texttt{SEL})를 적용한다. FC는
+CMSIS-NN 빌트인 int16x8 경로다. 선행 연구의 실측 결과는 스칼라 기준
+$4{,}494.2$ms, 비퓨전 TFLM $9{,}641.4$ms(fast 경로 조건 위배로 C
+폴백), 퓨전 $2{,}407.0$ms, TFLM 없는 직접 호출
+$2{,}395.5$ms였다\cite{cha2026fusion}.
+
+\subsection{발화율 --- 미활용 자원}\label{sec:sparsity}
+
+선행 연구\cite{cha2026fusion}는 희소성 활용(zero-skipping)을 향후
+과제로 남겼고 발화율 수치를 보고하지 않았다. 이에 저자들은 같은
+모델$\cdot$같은 정수 파이프라인의 호스트 구현으로 CIFAR-10 테스트셋
+10{,}000장$\times$30스텝의 발화율(비영 활성 비율)을 실측하였다:
+입력 스파이크 47.7\%, LIF1 출력 4.1\%, LIF2 출력 3.4\%. 즉 MAC의
+83.6\%를 차지하는 CPL2의 입력은 약 96\%가 0이다. dense SMLALD 커널은
+이 0들을 로드하고 곱하고 누산한다 --- 문헌이 SNN의 장점으로 꼽는
+이벤트 기반 희소성\cite{roy2019towards}이 정수 커널 수준에서는 전혀
+활용되지 않고 있었다. 이것이 IV장의 출발점이다.
