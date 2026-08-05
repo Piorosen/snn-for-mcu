@@ -14,12 +14,13 @@
  */
 
 #include "snn_lif_s16.h"
+#include "snn_hot.h"
 
 #if defined(ARM_MATH_DSP)
 #include "cmsis_compiler.h"
 #endif
 
-void snn_lif_s16(int32_t n,
+void SNN_ITCM_CODE snn_lif_s16(int32_t n,
                  const int16_t *in,
                  int16_t *spk_out,
                  int16_t *mem,

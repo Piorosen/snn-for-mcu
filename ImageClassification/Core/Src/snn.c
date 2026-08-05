@@ -24,6 +24,7 @@
 
 #include "arm_nnfunctions.h"
 #include "snn_conv_pool_lif_s16.h"
+#include "snn_hot.h"
 #include "snn_weights_fused.h"
 
 // LIF1 스파이크 크기: FC와 달리 conv2는 과거 int32 누산 제약으로 Q14(16384)를
@@ -33,10 +34,11 @@
 // --------- 내부 상태 (LIF, elementwise라 레이아웃 무관 → flat) ---------
 
 // 4바이트 정렬: snn_lif_s16의 SIMD(32비트 페어 로드) 경로 보장
-static int16_t g_lif1_mem[32 * 16 * 16] __attribute__((aligned(4)));
-static int16_t g_lif1_spk_prev[32 * 16 * 16] __attribute__((aligned(4)));
-static int16_t g_lif2_mem[64 * 8 * 8] __attribute__((aligned(4)));
-static int16_t g_lif2_spk_prev[64 * 8 * 8] __attribute__((aligned(4)));
+// SNN_OPT_DTCM: 매 스텝 전량 읽고 쓰는 LIF 상태를 DTCM에 둔다 (53KB < 64KB)
+static int16_t g_lif1_mem[32 * 16 * 16] SNN_DTCM_BSS;
+static int16_t g_lif1_spk_prev[32 * 16 * 16] SNN_DTCM_BSS;
+static int16_t g_lif2_mem[64 * 8 * 8] SNN_DTCM_BSS;
+static int16_t g_lif2_spk_prev[64 * 8 * 8] SNN_DTCM_BSS;
 static int16_t g_lif_out_mem[10];
 static int16_t g_lif_out_spk_prev[10];
 
@@ -46,7 +48,14 @@ static int16_t g_spk1[32 * 16 * 16] __attribute__((aligned(4)));  // LIF1 출력
 static int16_t g_spk2[64 * 8 * 8] __attribute__((aligned(4)));    // LIF2 출력 [8][8][64]
 
 // im2col: 2컬럼 * 6*6*Ci, conv2가 최대 (2*1152)
-static int16_t g_im2col_buf[2 * 6 * 6 * 32] __attribute__((aligned(4)));
+static int16_t g_im2col_buf[2 * 6 * 6 * 32] SNN_DTCM_BSS;
+
+#if defined(SNN_OPT_KERNEL) && (SNN_OPT_KERNEL != 0)
+// 희소 커널용 전치 가중치 [rhs_cols][Co] — snn_accel_init에서 FLASH 원본을
+// 한 번 전치해 채운다 (레이아웃 근거: snn_conv_pool_lif_s16.h)
+static int16_t g_conv1_wT[6 * 6 * 3 * 32] SNN_DTCM_BSS;                 // 6,912B
+static int16_t g_conv2_wT[6 * 6 * 32 * 64] __attribute__((aligned(4))); // 147,456B (SRAM)
+#endif
 
 // --------- 양자화 파라미터 (snn_accel_init에서 계산) ---------
 
@@ -102,6 +111,15 @@ void snn_accel_init(void) {
     for (int o = 0; o < 10; ++o) {
         g_biasfc[o] = llround((double)snn_fc_bias[o] * (double)snn_fc_bias_scale / mf);
     }
+
+#if defined(SNN_OPT_KERNEL) && (SNN_OPT_KERNEL != 0)
+    for (int k = 0; k < 6 * 6 * 3; ++k)
+        for (int c = 0; c < 32; ++c)
+            g_conv1_wT[k * 32 + c] = snn_conv1_fused_w[c * (6 * 6 * 3) + k];
+    for (int k = 0; k < 6 * 6 * 32; ++k)
+        for (int c = 0; c < 64; ++c)
+            g_conv2_wT[k * 64 + c] = snn_conv2_fused_w[c * (6 * 6 * 32) + k];
+#endif
 
     g_accel_inited = 1;
 }
@@ -175,9 +193,14 @@ void snn_forward_step(const int16_t* x,
         const cmsis_nn_dims out_d = { .n = 1,  .h = 16, .w = 16, .c = 32 };
         const snn_lif_ctx lif1 = { g_lif1_mem, g_lif1_spk_prev,
                                    snn_lif1_beta, snn_lif1_threshold, SPK1_VAL };
+#if defined(SNN_OPT_KERNEL) && (SNN_OPT_KERNEL != 0)
+        const int16_t *w1 = g_conv1_wT;   /* 희소 커널: 전치 레이아웃 */
+#else
+        const int16_t *w1 = snn_conv1_fused_w;
+#endif
         snn_convolve_pool_lif_s16(&ctx, &conv_params, &qp,
-                                  &in_d, x, &flt_d, snn_conv1_fused_w,
-                                  &bias_d, g_bias1, &lif1, &out_d, g_spk1);
+                                  &in_d, x, &flt_d, w1,
+                                  &bias_d, g_bias1, &lif1, ONE_Q15, &out_d, g_spk1);
     }
 
     // Conv2+Pool2+LIF2: g_spk1 -> g_spk2 [8][8][64] (0 또는 ONE_Q15)
@@ -188,9 +211,14 @@ void snn_forward_step(const int16_t* x,
         const cmsis_nn_dims out_d = { .n = 1,  .h = 8,  .w = 8,  .c = 64 };
         const snn_lif_ctx lif2 = { g_lif2_mem, g_lif2_spk_prev,
                                    snn_lif2_beta, snn_lif2_threshold, ONE_Q15 };
+#if defined(SNN_OPT_KERNEL) && (SNN_OPT_KERNEL != 0)
+        const int16_t *w2 = g_conv2_wT;   /* 희소 커널: 전치 레이아웃 */
+#else
+        const int16_t *w2 = snn_conv2_fused_w;
+#endif
         snn_convolve_pool_lif_s16(&ctx, &conv_params, &qp,
-                                  &in_d, g_spk1, &flt_d, snn_conv2_fused_w,
-                                  &bias_d, g_bias2, &lif2, &out_d, g_spk2);
+                                  &in_d, g_spk1, &flt_d, w2,
+                                  &bias_d, g_bias2, &lif2, SPK1_VAL, &out_d, g_spk2);
     }
 
     // FC: g_spk2 (4096) -> fc_out[10]

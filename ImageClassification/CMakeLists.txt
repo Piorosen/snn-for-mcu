@@ -7,8 +7,18 @@ set(CMAKE_CXX_STANDARD 17)   # TFLite Micro 요구
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ON: TFLite Micro 런타임(int16x8 CMSIS-NN 커널 + LIF 커스텀 오퍼)으로 SNN 실행
-# OFF: 수제 Conv+Pool+LIF 퓨전 커널 경로 (더 빠름, snn.c)
+# OFF: 수제 Conv+Pool+LIF 퓨전 커널 경로 (snn.c)
 option(SNN_USE_TFLM "SNN을 TFLite Micro 런타임으로 실행" ON)
+
+# 벤치 하네스: main.cc 대신 main_bench.cc (SD/JPEG/LCD 없이 고정 입력 8장,
+# DWT_CYCCNT 계측, 결과는 g_snn_bench 구조체 → info/code/run_snn_bench.py로 회수)
+option(SNN_BENCH "DWT 사이클 벤치 하네스 빌드" OFF)
+
+# 최적화 스위치 (실측 근거: info/raw/measured_facts.md)
+option(SNN_OPT_ART    "ART accelerator + 플래시 프리페치 (FLASH_ACR)" ON)
+option(SNN_OPT_ITCM   "핫 커널 코드를 ITCM RAM(16KB)에 배치"          ON)
+option(SNN_OPT_DTCM   "가중치 사본·스크래치·LIF 상태를 DTCM/SRAM에 배치" ON)
+option(SNN_OPT_KERNEL "희소(spike-driven) matmul 커널 + 인코더 LUT 캐시" ON)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
@@ -83,12 +93,22 @@ else()
     set(TFLM_SOURCES "")
 endif()
 
+if(SNN_BENCH)
+    set(MAIN_SOURCES
+        Core/Src/main_bench.cc
+        Core/Src/snn_bench_images.c
+    )
+else()
+    set(MAIN_SOURCES Core/Src/main.cc)
+endif()
+
 set(CORE_SOURCES
+    ${MAIN_SOURCES}
     ${SNN_IMPL_SOURCES}
-    Core/Src/main.cc
     Core/Src/snn_conv_pool_lif_s16.c   # 퓨전 커널 (TFLM 커스텀 오퍼도 이걸 호출)
     Core/Src/snn_encode.c
     Core/Src/snn_lif_s16.c
+    Core/Src/snn_tcm.c
     Core/Src/snn_weights.c
     Core/Src/decode.c
     Core/Src/jdata_conf.c
@@ -145,6 +165,15 @@ target_compile_definitions(${PROJECT_NAME}.elf PRIVATE
     STM32F746xx
     ARM_MATH_DSP    # Cortex-M7 DSP 확장 → CMSIS-NN SMLAD 경로 활성화
 )
+
+if(SNN_BENCH)
+    target_compile_definitions(${PROJECT_NAME}.elf PRIVATE SNN_BENCH=1)
+endif()
+foreach(opt ART ITCM DTCM KERNEL)
+    if(SNN_OPT_${opt})
+        target_compile_definitions(${PROJECT_NAME}.elf PRIVATE SNN_OPT_${opt}=1)
+    endif()
+endforeach()
 
 target_compile_options(${PROJECT_NAME}.elf PRIVATE
     ${MCU_FLAGS}

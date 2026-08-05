@@ -252,6 +252,9 @@ int main(void)
   /*##-1- LCD Configuration ##################################################*/
   LCD_Config();
 
+  // 핫 커널 코드를 플래시에서 ITCM RAM으로 복사 (SNN_OPT_ITCM 빌드에서만 동작)
+  snn_itcm_init();
+
   // CMSIS-NN 가속: 가중치 NHWC 퍼뮤트 + 양자화 파라미터 준비
   snn_accel_init();
 

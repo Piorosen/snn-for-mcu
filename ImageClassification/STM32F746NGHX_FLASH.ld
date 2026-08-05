@@ -41,9 +41,14 @@ _estack = ORIGIN(RAM) + LENGTH(RAM); /* end of "RAM" Ram type memory */
 _Min_Heap_Size = 0x200; /* required amount of heap */
 _Min_Stack_Size = 0x400; /* required amount of stack */
 
-/* Memories definition */
+/* Memories definition.
+   RAM 320K = DTCM 64K (0x20000000~0x2000FFFF, 코어 직결) + SRAM1 240K + SRAM2 16K.
+   물리적으로 다른 메모리지만 주소가 연속이라 하나의 영역으로 두고,
+   DTCM에 두고 싶은 것만 .dtcm_bss 섹션(영역 선두 = DTCM)으로 앞세운다.
+   ITCMRAM 16K는 핫 커널 코드 전용 (실측 0.50 cyc/insn, 플래시 대비 최대 2.5배). */
 MEMORY
 {
+  ITCMRAM  (xrw)   : ORIGIN = 0x00000000,   LENGTH = 16K
   RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 320K
   FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 1024K
 }
@@ -128,8 +133,37 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH
 
+  /* SNN 핫 커널 코드: 플래시에 적재(LMA)되고 부팅 시 snn_itcm_init()이
+     ITCM RAM(VMA 0x00000000)으로 복사한다. SNN_OPT_ITCM이 꺼진 빌드에서는
+     비어 있어 레이아웃이 기존과 동일하다. 아웃오브레인지 호출의 베니어도
+     섹션 안에 함께 배치되므로 복사 범위에 포함된다. */
+  _sitcm_code_load = LOADADDR(.itcm_code);
+  .itcm_code :
+  {
+    . = ALIGN(4);
+    _sitcm_code = .;
+    *(.itcm_code)
+    *(.itcm_code*)
+    . = ALIGN(4);
+    _eitcm_code = .;
+  } >ITCMRAM AT> FLASH
+
   /* Used by the startup to initialize data */
   _sidata = LOADADDR(.data);
+
+  /* SNN 핫 데이터 (가중치 사본·im2col·LIF 상태): RAM 영역 선두 = DTCM 64K.
+     런타임에 코드가 채우므로 적재/제로화가 필요 없다(NOLOAD).
+     SNN_OPT_DTCM이 꺼진 빌드에서는 비어 있어 .data가 기존처럼 0x20000000에 온다. */
+  .dtcm_bss (NOLOAD) :
+  {
+    . = ALIGN(4);
+    _sdtcm_bss = .;
+    *(.dtcm_bss)
+    *(.dtcm_bss*)
+    . = ALIGN(4);
+    _edtcm_bss = .;
+  } >RAM
+  ASSERT(_edtcm_bss <= 0x20010000, ".dtcm_bss가 DTCM 64KB를 넘었다")
 
   /* Initialized data sections into "RAM" Ram type memory */
   .data :

@@ -20,6 +20,11 @@ void snn_reset_state(void);
 // snn_forward_step 최초 호출 시 자동 수행되지만, 부팅 시 명시 호출 권장.
 void snn_accel_init(void);
 
+// .itcm_code 섹션(핫 커널)을 플래시에서 ITCM RAM으로 복사 (구현: snn_tcm.c).
+// SNN_OPT_ITCM이 꺼진 빌드에서는 no-op(0 반환). 부팅 후, 추론 첫 호출 전에
+// 한 번 호출해야 한다. 복사한 바이트 수를 돌려준다.
+uint32_t snn_itcm_init(void);
+
 // 스파이크 인코딩 (rate coding, 구현: snn_encode.c)
 // data  : [B*H*W*C] 크기의 입력 (0~255), T는 무시됨 (한 타임스텝 분량 생성)
 // spikes: [B*H*W*C] 크기의 출력 버퍼 (0 또는 ONE_Q15 저장)

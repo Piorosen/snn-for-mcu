@@ -147,8 +147,18 @@
 #define  VDD_VALUE                    3300U /*!< Value of VDD in mv */
 #define  TICK_INT_PRIORITY            ((uint32_t)0U) /*!< tick interrupt priority */
 #define  USE_RTOS                     0U
+/* ART accelerator + 플래시 프리페치.
+ * 실측(info/raw/measured_facts.md §8): 이 값들이 0이라 FLASH_ACR=0x00000006
+ * (ARTEN=0, PRFTEN=0)으로 돌고 있었다. ITCM 경유 플래시 접근이 ART ON 시
+ * 1.46배 빨라진다(336.79→492.10 MB/s). 에라타 해당 없음(ES0290 Rev 7).
+ * HAL_Init()이 이 매크로를 보고 FLASH_ACR을 설정한다. */
+#if defined(SNN_OPT_ART) && (SNN_OPT_ART != 0)
+#define  PREFETCH_ENABLE              1U
+#define  ART_ACCELERATOR_ENABLE        1U
+#else
 #define  PREFETCH_ENABLE              0U
 #define  ART_ACCELERATOR_ENABLE        0U /* To enable instruction cache and prefetch */
+#endif
 
 #define  USE_HAL_ADC_REGISTER_CALLBACKS         0U /* ADC register callback disabled       */
 #define  USE_HAL_CAN_REGISTER_CALLBACKS         0U /* CAN register callback disabled       */

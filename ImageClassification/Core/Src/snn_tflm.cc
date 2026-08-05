@@ -19,6 +19,7 @@
 
 #include "snn.h"
 #include "snn_conv_pool_lif_s16.h"
+#include "snn_hot.h"
 #include "snn_lif_s16.h"
 #include "snn_model_data.h"
 
@@ -34,15 +35,44 @@
 
 // --------- 텐서 아레나 / 인터프리터 ---------
 
-// 현재 모델 실사용 80,288B (arena_used_bytes). 최대 확보 정책:
+// 비-DTCM 빌드 실사용 80,288B (arena_used_bytes). 최대 확보 정책:
 // RAM 320KB - 아레나 외 정적 ~6KB - 스택/힙(libjpeg malloc 포함) 여유 64KB
+// SNN_OPT_DTCM 빌드에서는 LIF 상태(49KB)·im2col 스크래치가 DTCM 정적 버퍼로
+// 나가고 conv2 가중치 사본(144KB)이 SRAM을 쓰므로 아레나를 64KB로 줄인다
+// (그 구성의 아레나 실사용 ~31KB).
 #ifndef SNN_TFLM_ARENA_SIZE
+#if defined(SNN_OPT_DTCM) && (SNN_OPT_DTCM != 0)
+#define SNN_TFLM_ARENA_SIZE (64 * 1024)
+#elif defined(SNN_OPT_KERNEL) && (SNN_OPT_KERNEL != 0)
+// KERNEL 단독: 가중치 사본(151KB)이 SRAM을 쓰므로 아레나를 실사용(80KB)+여유로
+#define SNN_TFLM_ARENA_SIZE (104 * 1024)
+#else
 #define SNN_TFLM_ARENA_SIZE (256 * 1024)
+#endif
 #endif
 
 namespace {
 
 alignas(16) uint8_t g_tensor_arena[SNN_TFLM_ARENA_SIZE];
+
+#if (defined(SNN_OPT_DTCM) && (SNN_OPT_DTCM != 0)) || \
+    (defined(SNN_OPT_KERNEL) && (SNN_OPT_KERNEL != 0))
+// 가중치 사본. SMLALD/희소 내적은 로드가 병목이라 가중치 상주 위치가 지배적이다.
+//  - conv1(6,912B): DTCM (로드 레이턴시 최소, 캐시 유지보수 불필요)
+//  - conv2(147,456B): DTCM 64KB에 안 들어가므로 SRAM .bss — D-cache 적중 시
+//    SMLAD 처리량이 DTCM과 동일(실측 0.52 MAC/cyc)하고 플래시보다 미스가 싸다.
+// SNN_OPT_KERNEL 빌드에서는 **전치 레이아웃** [rhs_cols][Co]로 채운다
+// (희소 gather 캐시 지역성 — snn_conv_pool_lif_s16.h 참조).
+static int16_t s_conv1_w[32 * 6 * 6 * 3] SNN_DTCM_BSS;
+static int16_t s_conv2_w[64 * 6 * 6 * 32] __attribute__((aligned(4)));
+#endif
+#if defined(SNN_OPT_DTCM) && (SNN_OPT_DTCM != 0)
+// im2col 스크래치 (아레나 대신 DTCM 고정)
+static int16_t s_im2col[2 * SNN_CPL_MAX_RHS_COLS] SNN_DTCM_BSS;
+// LIF 상태 풀: lif1 2x(16*16*32) + lif2 2x(8*8*64) + lif_out 2x10 = 49,192B
+static int16_t s_lif_pool[2 * (16 * 16 * 32) + 2 * (8 * 8 * 64) + 2 * 10] SNN_DTCM_BSS;
+static size_t s_lif_pool_used = 0;
+#endif
 tflite::MicroInterpreter *g_interpreter = nullptr;
 int g_ready = 0;
 
@@ -62,11 +92,23 @@ struct LifState {
 LifState g_lif_states[3];   // [0]=CPL1, [1]=CPL2, [2]=LIF_OUT
 int16_t *g_lif_out_mem = nullptr; // mem_out 복사용
 
+int16_t *LifStateAlloc(TfLiteContext *context, int32_t n) {
+#if defined(SNN_OPT_DTCM) && (SNN_OPT_DTCM != 0)
+    // DTCM 풀 우선, 넘치면 아레나로 폴백 (모델이 커져도 동작은 유지)
+    if (s_lif_pool_used + (size_t)n <= sizeof(s_lif_pool) / sizeof(s_lif_pool[0])) {
+        int16_t *p = &s_lif_pool[s_lif_pool_used];
+        s_lif_pool_used += (size_t)n;
+        return p;
+    }
+#endif
+    return (int16_t *)context->AllocatePersistentBuffer(context, n * sizeof(int16_t));
+}
+
 TfLiteStatus AllocLifState(TfLiteContext *context, int slot, int32_t n) {
     LifState &s = g_lif_states[slot];
     s.n = n;
-    s.mem = (int16_t *)context->AllocatePersistentBuffer(context, n * sizeof(int16_t));
-    s.spk_prev = (int16_t *)context->AllocatePersistentBuffer(context, n * sizeof(int16_t));
+    s.mem = LifStateAlloc(context, n);
+    s.spk_prev = LifStateAlloc(context, n);
     if (!s.mem || !s.spk_prev) return kTfLiteError;
     memset(s.mem, 0, n * sizeof(int16_t));
     memset(s.spk_prev, 0, n * sizeof(int16_t));
@@ -78,6 +120,7 @@ TfLiteStatus AllocLifState(TfLiteContext *context, int slot, int32_t n) {
 struct CplOpData {
     int32_t *mult;      // per-channel (persistent)
     int32_t *shift;
+    const int16_t *w_cache; // SNN_OPT_DTCM: 가중치 사본 (없으면 flatbuffer 원본)
     int scratch_idx;    // im2col
     int slot;           // LIF 상태 슬롯
     int16_t beta, threshold, spike_val;
@@ -121,11 +164,39 @@ TfLiteStatus CplPrepareImpl(TfLiteContext *context, TfLiteNode *node, int slot,
         d.shift[c] = mult_shift;
     }
 
-    // im2col 스크래치 (아레나 플래너 관리)
+    d.w_cache = nullptr;
+#if (defined(SNN_OPT_DTCM) && (SNN_OPT_DTCM != 0)) || \
+    (defined(SNN_OPT_KERNEL) && (SNN_OPT_KERNEL != 0))
+    // 가중치를 flatbuffer(플래시)에서 TCM/SRAM 사본으로 복사.
+    // SNN_OPT_KERNEL이면 전치 [rhs_cols][Co]로 채운다 (희소 커널 요구 레이아웃).
+    {
+        const int32_t w_elems = Co * rhs_cols;
+        int16_t *wbuf = (slot == 0) ? s_conv1_w : s_conv2_w;
+        const int32_t wcap = (slot == 0) ? (int32_t)(sizeof(s_conv1_w) / sizeof(int16_t))
+                                         : (int32_t)(sizeof(s_conv2_w) / sizeof(int16_t));
+        if (w_elems > wcap) return kTfLiteError; // 모델이 커널 사본 버퍼를 넘음
+        const int16_t *src = w->data.i16;
+#if defined(SNN_OPT_KERNEL) && (SNN_OPT_KERNEL != 0)
+        for (int32_t k = 0; k < rhs_cols; ++k)
+            for (int32_t c = 0; c < Co; ++c)
+                wbuf[k * Co + c] = src[c * rhs_cols + k];
+#else
+        memcpy(wbuf, src, (size_t)w_elems * sizeof(int16_t));
+#endif
+        d.w_cache = wbuf;
+    }
+#endif
+#if defined(SNN_OPT_DTCM) && (SNN_OPT_DTCM != 0)
+    // im2col 스크래치: DTCM 고정 버퍼
+    d.scratch_idx = -1;
+    if (2 * rhs_cols > (int32_t)(sizeof(s_im2col) / sizeof(int16_t))) return kTfLiteError;
+#else
+    // im2col 스크래치 (아레나 플래너 관리; 희소 커널은 쓰지 않지만 무해)
     TF_LITE_ENSURE_STATUS(context->RequestScratchBufferInArena(
         context, 2 * rhs_cols * sizeof(int16_t), &d.scratch_idx));
+#endif
 
-    // LIF 상태 (퍼시스턴트 아레나)
+    // LIF 상태 (SNN_OPT_DTCM: DTCM 풀 / 기본: 퍼시스턴트 아레나)
     TF_LITE_ENSURE_STATUS(AllocLifState(context, slot, out_elems));
 
     mc->DeallocateTempTfLiteTensor(in);
@@ -134,15 +205,29 @@ TfLiteStatus CplPrepareImpl(TfLiteContext *context, TfLiteNode *node, int slot,
     return kTfLiteOk;
 }
 
-TfLiteStatus CplEvalImpl(TfLiteContext *context, TfLiteNode *node, int slot) {
+TfLiteStatus SNN_ITCM_CODE CplEvalImpl(TfLiteContext *context, TfLiteNode *node, int slot) {
     const CplOpData &d = g_cpl[slot];
     const TfLiteEvalTensor *in = tflite::micro::GetEvalInput(context, node, 0);
     const TfLiteEvalTensor *w = tflite::micro::GetEvalInput(context, node, 1);
     const TfLiteEvalTensor *bias = tflite::micro::GetEvalInput(context, node, 2);
     TfLiteEvalTensor *out = tflite::micro::GetEvalOutput(context, node, 0);
 
+#if defined(SNN_OPT_DTCM) && (SNN_OPT_DTCM != 0)
+    void *scratch = s_im2col;
+#else
+    void *scratch = context->GetScratchBuffer(context, d.scratch_idx);
+#endif
+#if (defined(SNN_OPT_DTCM) && (SNN_OPT_DTCM != 0)) || \
+    (defined(SNN_OPT_KERNEL) && (SNN_OPT_KERNEL != 0))
+    const int16_t *w_data = d.w_cache; // KERNEL: 전치본 필수 (Prepare에서 보장)
+#else
+    const int16_t *w_data = w->data.i16;
+#endif
+    // 입력 스파이크 진폭: CPL1은 인코더 출력(ONE_Q15), CPL2는 LIF1 스파이크
+    const int32_t in_spike_val = (slot == 0) ? ONE_Q15 : (int32_t)g_cpl[0].spike_val;
+
     const cmsis_nn_context ctx = {
-        .buf = context->GetScratchBuffer(context, d.scratch_idx),
+        .buf = scratch,
         .size = 0,
     };
     const cmsis_nn_conv_params conv_params = {
@@ -163,8 +248,8 @@ TfLiteStatus CplEvalImpl(TfLiteContext *context, TfLiteNode *node, int slot) {
                               d.beta, d.threshold, d.spike_val };
 
     if (snn_convolve_pool_lif_s16(&ctx, &conv_params, &qp,
-                                  &in_d, in->data.i16, &flt_d, w->data.i16,
-                                  &bias_d, bias->data.i64, &lif,
+                                  &in_d, in->data.i16, &flt_d, w_data,
+                                  &bias_d, bias->data.i64, &lif, in_spike_val,
                                   &out_d, out->data.i16) != ARM_CMSIS_NN_SUCCESS) {
         return kTfLiteError;
     }
@@ -177,8 +262,35 @@ TfLiteStatus Cpl1Prepare(TfLiteContext *c, TfLiteNode *n) {
 TfLiteStatus Cpl2Prepare(TfLiteContext *c, TfLiteNode *n) {
     return CplPrepareImpl(c, n, 1, snn_lif2_beta, snn_lif2_threshold);
 }
-TfLiteStatus Cpl1Eval(TfLiteContext *c, TfLiteNode *n) { return CplEvalImpl(c, n, 0); }
-TfLiteStatus Cpl2Eval(TfLiteContext *c, TfLiteNode *n) { return CplEvalImpl(c, n, 1); }
+#if defined(SNN_BENCH)
+// 벤치 빌드에서만 레이어별 사이클을 누적한다. DWT_CYCCNT는 main_bench.cc가 켠다.
+// 애플리케이션 빌드에는 이 코드가 통째로 들어가지 않으므로 성능에 영향이 없다.
+#include "stm32f7xx.h"   // DWT
+extern "C" {
+volatile uint32_t g_snn_cyc_cpl1 = 0;
+volatile uint32_t g_snn_cyc_cpl2 = 0;
+volatile uint32_t g_snn_cyc_lifout = 0;
+volatile uint32_t g_snn_cyc_memcpy = 0;
+}
+#define BENCH_T0() const uint32_t _bt0 = DWT->CYCCNT
+#define BENCH_T1(acc) do { (acc) += DWT->CYCCNT - _bt0; } while (0)
+#else
+#define BENCH_T0()    do { } while (0)
+#define BENCH_T1(acc) do { } while (0)
+#endif
+
+TfLiteStatus SNN_ITCM_CODE Cpl1Eval(TfLiteContext *c, TfLiteNode *n) {
+    BENCH_T0();
+    TfLiteStatus s = CplEvalImpl(c, n, 0);
+    BENCH_T1(g_snn_cyc_cpl1);
+    return s;
+}
+TfLiteStatus SNN_ITCM_CODE Cpl2Eval(TfLiteContext *c, TfLiteNode *n) {
+    BENCH_T0();
+    TfLiteStatus s = CplEvalImpl(c, n, 1);
+    BENCH_T1(g_snn_cyc_cpl2);
+    return s;
+}
 
 // --------- SNN_LIF_OUT 커스텀 커널 (FC 출력 -> 출력 스파이크) ---------
 
@@ -193,12 +305,14 @@ TfLiteStatus LifOutPrepare(TfLiteContext *context, TfLiteNode *node) {
     return kTfLiteOk;
 }
 
-TfLiteStatus LifOutEval(TfLiteContext *context, TfLiteNode *node) {
+TfLiteStatus SNN_ITCM_CODE LifOutEval(TfLiteContext *context, TfLiteNode *node) {
+    BENCH_T0();
     const TfLiteEvalTensor *in = tflite::micro::GetEvalInput(context, node, 0);
     TfLiteEvalTensor *out = tflite::micro::GetEvalOutput(context, node, 0);
     snn_lif_s16(EvalElementCount(in), in->data.i16, out->data.i16,
                 g_lif_states[2].mem, g_lif_states[2].spk_prev,
                 snn_lif_out_beta, snn_lif_out_threshold, ONE_Q15);
+    BENCH_T1(g_snn_cyc_lifout);
     return kTfLiteOk;
 }
 
@@ -261,7 +375,11 @@ extern "C" void snn_forward_step(const int16_t *x,
         return;
     }
 
-    memcpy(g_interpreter->input(0)->data.i16, x, 32 * 32 * 3 * sizeof(int16_t));
+    {
+        BENCH_T0();
+        memcpy(g_interpreter->input(0)->data.i16, x, 32 * 32 * 3 * sizeof(int16_t));
+        BENCH_T1(g_snn_cyc_memcpy);
+    }
 
     if (g_interpreter->Invoke() != kTfLiteOk) {
         MicroPrintf("Invoke failed");

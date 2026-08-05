@@ -13,6 +13,7 @@
  */
 
 #include "snn.h"
+#include "snn_hot.h"
 
 static uint32_t g_encode_rng = 0x12345678u;
 
@@ -25,9 +26,18 @@ static inline uint32_t xorshift32(void) {
     return x;
 }
 
+#if defined(SNN_OPT_KERNEL) && (SNN_OPT_KERNEL != 0)
+/* LUT 캐시: (gain, offset)이 같으면 임계값 표가 결정적으로 동일하므로
+ * 재계산하지 않는다 (매 호출 256회 double 소프트플로트 연산 제거).
+ * 스파이크 시퀀스는 비트 단위로 불변이다. */
+static uint64_t g_thr_lut[256];
+static float g_thr_gain, g_thr_offset;
+static int g_thr_valid = 0;
+#endif
+
 // data  : [B*C*H*W] 크기의 입력 (0~255)
 // spikes: [B*C*H*W] 크기의 출력 (0 또는 ONE_Q15)
-void spiking_rate(
+void SNN_ITCM_CODE spiking_rate(
     const uint8_t* data,
     int16_t* spikes,
     int T, int B, int C, int H, int W,
@@ -38,6 +48,20 @@ void spiking_rate(
     int spatial = B * C * H * W;
 
     // 발화 확률 p = clamp(gain * v/255 + offset, 0, 1) -> 임계값 p * 2^32
+#if defined(SNN_OPT_KERNEL) && (SNN_OPT_KERNEL != 0)
+    uint64_t *thr = g_thr_lut;
+    if (!g_thr_valid || gain != g_thr_gain || offset != g_thr_offset) {
+        for (int v = 0; v < 256; ++v) {
+            double p = (double)gain * ((double)v / 255.0) + (double)offset;
+            if (p < 0.0) p = 0.0;
+            if (p > 1.0) p = 1.0;
+            thr[v] = (uint64_t)(p * 4294967296.0);
+        }
+        g_thr_gain = gain;
+        g_thr_offset = offset;
+        g_thr_valid = 1;
+    }
+#else
     uint64_t thr[256];
     for (int v = 0; v < 256; ++v) {
         double p = (double)gain * ((double)v / 255.0) + (double)offset;
@@ -45,6 +69,7 @@ void spiking_rate(
         if (p > 1.0) p = 1.0;
         thr[v] = (uint64_t)(p * 4294967296.0);
     }
+#endif
 
     for (int i = 0; i < spatial; ++i) {
         spikes[i] = ((uint64_t)xorshift32() < thr[data[i]]) ? ONE_Q15 : 0;
