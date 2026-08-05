@@ -1,0 +1,251 @@
+% ============================================================================
+% jips.sty — JIPS (Journal of Information Processing Systems) submission style
+% LaTeX reproduction of the JIPS_Format(submission)-2024-1.docx template.
+%
+% Engines:
+%   xelatex  (recommended) : real fonts, self-contained in ./fonts/
+%                            (Minion Pro, Arial, Tahoma, Helvetica, AppleGothic)
+%   pdflatex (fallback)    : newtx (Minion sub.) + helvet (Arial/Univers sub.)
+%
+% Page: 176 mm x 261 mm, margins T 14.6 / B 23 / L 18 / R 18 mm, single column
+%
+% Public interface
+%   \jipsrunningtitle{...}    even-page running head (short title)
+%   \jipsrunningauthors{...}  odd-page running head (full author list)
+%   \jipsfirstpage{...}       first-page band + logo + thick rule + the
+%                             page-bottom footnote block (argument = block body)
+%   \jipstitleblock{title}{authors}
+%   jipsabstract environment  "Abstract" block (rule above)
+%   \jipskeywords{...}        "Keywords" block (rule below)
+%   \jipsbio{photo}{name}{orcid-url}{biography text}
+%   \jipsbibliography{bibfile}  9pt IEEEtran-style numeric references
+%   Fonts/colors: \universfam \remarkfam \gulimfam \jipsrefmark \jipshf
+%                 jipsnavy jipsblue remarkblue jipsred tabgray
+% ============================================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{jips}[2026/07/27 v1.1 JIPS submission template style]
+
+% ------------------------------- geometry ----------------------------------
+\RequirePackage[papersize={176mm,261mm}, top=14.6mm, bottom=23mm,
+                left=18mm, right=18mm, headsep=4mm, footskip=10mm,
+                headheight=9pt]{geometry}
+
+% -------------------------------- fonts ------------------------------------
+\RequirePackage{iftex}
+\ifPDFTeX
+  \RequirePackage[T1]{fontenc}
+  \RequirePackage[utf8]{inputenc}
+  \RequirePackage{newtxtext,newtxmath}    % Minion Pro substitute (Times-like)
+  \RequirePackage[scaled=0.9]{helvet}     % Arial / Univers LT substitute
+  \RequirePackage{textcomp}               % \textreferencemark (※) etc.
+  \newcommand{\universfam}{\sffamily}     % headers/footers/band (Univers LT)
+  \newcommand{\remarkfam}{\sffamily}      % Remark box body (Tahoma)
+  \newcommand{\gulimfam}{\sffamily}       % "Remark :" label (Gulim)
+  \newcommand{\jipsrefmark}{\textreferencemark}
+\else
+  % All fonts are shipped in ./fonts/ — self-contained, no system fonts used.
+  \RequirePackage[no-math]{fontspec}
+  \defaultfontfeatures{Path=./fonts/}
+  \setmainfont{MinionPro-Regular.otf}[    % real Minion Pro (Acrobat Reader)
+    BoldFont=MinionPro-Bold.otf,
+    ItalicFont=MinionPro-It.otf,
+    BoldItalicFont=MinionPro-BoldIt.otf]
+  \setsansfont{Arial.ttf}[                % real Arial (macOS)
+    BoldFont=Arial-Bold.ttf,
+    ItalicFont=Arial-Italic.ttf,
+    BoldItalicFont=Arial-BoldItalic.ttf]
+  \newfontfamily\universfam{Helvetica-Regular.ttf}[% Univers LT Std substitute
+    BoldFont=Helvetica-Bold.ttf]
+  \newfontfamily\remarkfam{Tahoma.ttf}[   % real Tahoma (macOS)
+    BoldFont=Tahoma-Bold.ttf]
+  \newfontfamily\gulimfam{AppleGothic.ttf}[% Gulim substitute for "Remark :"
+    BoldFont=AppleGothic.ttf]
+  \newfontfamily\gothicfam{AppleGothic.ttf}% carries U+203B (※)
+  \newcommand{\jipsrefmark}{{\gothicfam ※}}
+  \RequirePackage{newtxmath}              % Times-like math (Cambria Math sub)
+  % upright math material (\log, digits) in Minion instead of CM fallback
+  \DeclareSymbolFont{operators}{\encodingdefault}{\rmdefault}{m}{n}
+  \SetSymbolFont{operators}{bold}{\encodingdefault}{\rmdefault}{b}{n}
+\fi
+\RequirePackage{upgreek}                  % upright δ (\updelta) as in the DOCX
+
+% ------------------------------- packages ----------------------------------
+\RequirePackage{xcolor}
+\RequirePackage{graphicx}
+\RequirePackage{amsmath}
+\RequirePackage{array,multirow,booktabs,colortbl}
+\RequirePackage{caption}
+\RequirePackage{titlesec}
+\RequirePackage{fancyhdr}
+\RequirePackage{float}
+\RequirePackage[normalem]{ulem}           % \uline for underlined runs
+\RequirePackage{tikz}                     % first-page band / footnote block
+\usetikzlibrary{calc}
+\RequirePackage{etoolbox}
+
+% -------------------------------- colors -----------------------------------
+\definecolor{jipsnavy}{HTML}{00208B}      % headings / labels
+\definecolor{jipsblue}{HTML}{0000FF}      % hyperlinks, DOIs
+\definecolor{remarkblue}{HTML}{0070C0}    % "Remark :" label
+\definecolor{jipsred}{HTML}{FF0000}       % red template warnings
+\definecolor{tabgray}{HTML}{F2F2F2}       % table row shading
+
+\RequirePackage[colorlinks=true, urlcolor=jipsblue, linkcolor=black,
+                citecolor=black, filecolor=jipsblue]{hyperref}
+
+% ------------------------------ body settings ------------------------------
+\AtBeginDocument{\fontsize{9.5}{12.3}\selectfont}
+\setlength{\parindent}{8.5pt}             % small first-line indent (170 tw)
+\setlength{\parskip}{0pt}
+\raggedbottom
+\emergencystretch=1.5em
+
+% ---------------------------- section headings -----------------------------
+% "1. Introduction"        : 14 pt bold, #00208B
+% "2.1 Wavelet Filterbank" : 12 pt medium, #00208B (template: not bold)
+% "2.1.1 Wavelet theory"   : 10 pt, #00208B
+\titleformat{\section}
+  {\fontsize{14}{16.8}\selectfont\bfseries\color{jipsnavy}}
+  {\thesection.}{0.45em}{}
+\titlespacing*{\section}{0pt}{17pt plus 4pt minus 3pt}{12pt}
+\titleformat{\subsection}
+  {\fontsize{12}{14.4}\selectfont\color{jipsnavy}}
+  {\thesubsection}{0.45em}{}
+\titlespacing*{\subsection}{0pt}{16pt plus 3pt minus 2pt}{9pt}
+\titleformat{\subsubsection}
+  {\fontsize{10}{12}\selectfont\color{jipsnavy}}
+  {\thesubsubsection}{0.45em}{}
+\titlespacing*{\subsubsection}{0pt}{13pt plus 3pt minus 2pt}{7pt}
+
+% -------------------------------- captions ---------------------------------
+% Figures : caption BELOW,  "Fig. N. Caption text."  (label bold, left align)
+% Tables  : caption ABOVE,  "Table N. Caption text." (label bold, Arial)
+\captionsetup{font={rm},labelfont=bf,labelsep=period,
+              justification=raggedright,singlelinecheck=false}
+\captionsetup[figure]{name=Fig.}
+\captionsetup[table]{name=Table}
+\DeclareCaptionFont{jipscap}{\fontsize{9.5}{11.4}\selectfont}
+\captionsetup[figure]{font=jipscap}
+\captionsetup[table]{font={jipscap,sf}}   % table caption is Arial in the DOCX
+
+% --------------------------- headers and footers ---------------------------
+\newcommand{\jipshf}{\universfam\fontsize{7}{8.4}\selectfont}
+\newcommand{\jips@runningtitle}{}
+\newcommand{\jips@runningauthors}{}
+\newcommand{\jipsrunningtitle}[1]{\renewcommand{\jips@runningtitle}{#1}}
+\newcommand{\jipsrunningauthors}[1]{\renewcommand{\jips@runningauthors}{#1}}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+% even pages: short running title (left);  footer "N | J Inf Process Syst,"
+\fancyhead[LE]{\jipshf\jips@runningtitle}
+\fancyfoot[LE]{\jipshf \thepage\ | J Inf Process Syst,}
+% odd pages: full author list (right);  footer "J Inf Process Syst, | N"
+\fancyhead[RO]{\jipshf\jips@runningauthors}
+\fancyfoot[RO]{\jipshf J Inf Process Syst, | \thepage}
+
+% first page: no running header (band drawn as overlay), KIPS footer
+\fancypagestyle{jipsfirst}{%
+  \fancyhf{}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \fancyfoot[L]{\universfam\fontsize{6}{7.2}\selectfont\textbf{www.kips.or.kr}}%
+  \fancyfoot[R]{\universfam\fontsize{6}{7.2}\selectfont Copyright\textcopyright\ XXXX KIPS}%
+}
+
+% ------------------- first-page band, logo, footnote block -----------------
+% \jipsfirstpage{<footnote block body>} :
+%   colored band (figs/band.jpg) full paper width x 24.3 mm at the very top,
+%   journal line + DOI (left) and eISSN (right) on the band,
+%   JIPS logo right-aligned below the band, thick rule, and the page-anchored
+%   footnote frame near the page bottom (x 15.2 mm, y 221.9 mm, w 145.6 mm).
+\newcommand{\jipsfirstpage}[1]{%
+\thispagestyle{jipsfirst}%
+\noindent\begin{tikzpicture}[remember picture, overlay]
+  % gradient band
+  \node[anchor=north west, inner sep=0pt] at (current page.north west)
+    {\includegraphics[width=\paperwidth, height=24.3mm]{figs/band.jpg}};
+  % band text (left)
+  \node[anchor=west, inner sep=0pt]
+    at ($(current page.north west)+(18mm,-9.0mm)$)
+    {\universfam\fontsize{8}{9.6}\selectfont J Inf Process Syst,};
+  \node[anchor=west, inner sep=0pt]
+    at ($(current page.north west)+(18mm,-13.2mm)$)
+    {\universfam\fontsize{8}{9.6}\selectfont
+     \href{http://dx.doi.org/10.3745/JIPS}{\color{black}http://dx.doi.org/10.3745/JIPS}};
+  % band text (right)
+  \node[anchor=east, inner sep=0pt]
+    at ($(current page.north east)+(-18mm,-13.2mm)$)
+    {\universfam\fontsize{8}{9.6}\selectfont eISSN 2092-805X};
+  % JIPS logo below the band, right-aligned at the text edge
+  \node[anchor=north east, inner sep=0pt]
+    at ($(current page.north east)+(-18mm,-26.0mm)$)
+    {\includegraphics[width=51.2mm,height=9.8mm]{figs/jips-logo.jpg}};
+  % ---------------- first-page footnote block (page-anchored frame) --------
+  \node[anchor=north west, inner sep=0pt, text width=145.6mm]
+    at ($(current page.north west)+(15.2mm,-221.9mm)$)
+    {\setlength{\parindent}{0pt}\setlength{\parskip}{1.2pt}%
+     \rule{145.6mm}{0.75pt}\par\vspace{1.5pt}#1};
+\end{tikzpicture}%
+% keep flowed text clear of the page-anchored footnote block
+\enlargethispage{-17.5mm}%
+% space below the band + logo, then the thick rule
+\vspace*{16.2mm}%
+\noindent\rule{\textwidth}{2pt}\par}
+
+% --------------------------- title and authors -----------------------------
+\newcommand{\jipstitleblock}[2]{%
+\vspace{3.6mm}
+\begin{center}
+{\fontsize{16}{18}\selectfont\bfseries\color{jipsnavy}#1\par}
+\vspace{4mm}
+{\sffamily\fontsize{8.5}{14}\selectfont #2\par}
+\end{center}}
+
+% ------------------------- abstract and keywords ---------------------------
+\newenvironment{jipsabstract}{%
+\vspace{2.2mm}
+\noindent\rule{\textwidth}{0.4pt}
+\vspace{1.2mm}
+
+\noindent{\fontsize{9.5}{11.4}\selectfont\bfseries\color{jipsnavy}Abstract}\par
+\vspace{0.9mm}
+\fontsize{9}{11}\selectfont\noindent\ignorespaces}{\par}
+
+\newcommand{\jipskeywords}[1]{%
+\vspace{2.4mm}
+\noindent{\fontsize{9.5}{11.4}\selectfont\bfseries\color{jipsnavy}Keywords}\par
+\vspace{0.9mm}
+{\fontsize{8.5}{11}\selectfont\noindent #1\par}
+\vspace{1.4mm}
+\noindent\rule{\textwidth}{0.4pt}
+\vspace{1.5mm}\par}
+
+% ------------------------------- references --------------------------------
+\renewcommand{\refname}{References}
+% \jipsbibliography{<bibfile>} : 9pt/13pt IEEEtran numeric references
+\newcommand{\jipsbibliography}[1]{%
+{\fontsize{9}{13}\selectfont
+\bibliographystyle{IEEEtran}%
+\bibliography{#1}}}
+
+% ---------------------------- author biography -----------------------------
+% \jipsbio{photo file}{Name}{orcid url}{biography text}
+% photo 15.9 x 21 mm at the left margin, text indented 24.9 mm
+\newcommand{\jipsbio}[4]{%
+\noindent
+\begin{minipage}[t]{15.9mm}
+\vspace{0pt}
+\includegraphics[width=15.9mm,height=21mm]{#1}
+\end{minipage}%
+\hspace{9mm}%
+\begin{minipage}[t]{115mm}
+\vspace{0pt}
+{\fontsize{9.5}{12}\selectfont\textbf{#2}}\hspace{3mm}%
+{\fontsize{7}{8.4}\selectfont\uline{\href{#3}{#3}}}
+
+\vspace{1.5mm}
+{\fontsize{9.5}{12}\selectfont #4\par}
+\end{minipage}}
+
+\endinput

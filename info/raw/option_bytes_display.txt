@@ -1,0 +1,45 @@
+
+
+UPLOADING OPTION BYTES DATA ...
+
+  Bank          : 0x00
+  Address       : 0x40023c14 
+  Size          : 8 Bytes
+
+
+
+
+OPTION BYTES BANK: 0
+
+   Read Out Protection:
+
+     RDP          : 0xAA (Level 0, no protection) 
+
+   BOR Level:
+
+     BOR_LEV      : 0x3 (BOR off, POR/PDR reset threshold level is applied) 
+
+   User Configuration:
+
+     IWDG_STOP    : 0x1 (IWDG counter active in stop mode) 
+     IWDG_STDBY   : 0x1 (IWDG counter active in standby mode) 
+     WWDG_SW      : 0x1 (Software window watchdog) 
+     IWDG_SW      : 0x1 (Software independent watchdog) 
+     nRST_STOP    : 0x1 (No reset generated) 
+     nRST_STDBY   : 0x1 (No reset generated) 
+
+   Boot address Option Bytes:
+
+     BOOT_ADD0    : 0x80  (0x200000) 
+     BOOT_ADD1    : 0x40  (0x100000) 
+
+   Write Protection:
+
+     nWRP0        : 0x1 (Write protection not active on this sector) 
+     nWRP1        : 0x1 (Write protection not active on this sector) 
+     nWRP2        : 0x1 (Write protection not active on this sector) 
+     nWRP3        : 0x1 (Write protection not active on this sector) 
+     nWRP4        : 0x1 (Write protection not active on this sector) 
+     nWRP5        : 0x1 (Write protection not active on this sector) 
+     nWRP6        : 0x1 (Write protection not active on this sector) 
+     nWRP7        : 0x1 (Write protection not active on this sector) 

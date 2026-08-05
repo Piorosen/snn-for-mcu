@@ -1,0 +1,712 @@
+{
+  "mode": "UR",
+  "tag": "reset",
+  "programmer": "/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.cubeprogrammer.macosaarch64_1.0.100.202603051304/tools/bin/STM32_Programmer_CLI",
+  "regions": [
+    {
+      "name": "ppb_itm",
+      "addr": "0xE0000000",
+      "size": 4096,
+      "desc": "ITM (Instrumentation Trace Macrocell)",
+      "ok": true,
+      "file": "raw/regions_reset/ppb_itm.bin"
+    },
+    {
+      "name": "ppb_dwt",
+      "addr": "0xE0001000",
+      "size": 4096,
+      "desc": "DWT (Data Watchpoint & Trace) - 사이클 카운터 등",
+      "ok": true,
+      "file": "raw/regions_reset/ppb_dwt.bin"
+    },
+    {
+      "name": "ppb_fpb",
+      "addr": "0xE0002000",
+      "size": 4096,
+      "desc": "FPB (Flash Patch & Breakpoint)",
+      "ok": true,
+      "file": "raw/regions_reset/ppb_fpb.bin"
+    },
+    {
+      "name": "ppb_scs",
+      "addr": "0xE000E000",
+      "size": 4096,
+      "desc": "SCS: SysTick/NVIC/SCB/MPU/FPU/캐시제어 전체",
+      "ok": true,
+      "file": "raw/regions_reset/ppb_scs.bin"
+    },
+    {
+      "name": "ppb_tpiu",
+      "addr": "0xE0040000",
+      "size": 4096,
+      "desc": "TPIU (Trace Port Interface Unit)",
+      "ok": true,
+      "file": "raw/regions_reset/ppb_tpiu.bin"
+    },
+    {
+      "name": "ppb_etm",
+      "addr": "0xE0041000",
+      "size": 4096,
+      "desc": "ETM (Embedded Trace Macrocell)",
+      "ok": true,
+      "file": "raw/regions_reset/ppb_etm.bin"
+    },
+    {
+      "name": "ppb_dbgmcu",
+      "addr": "0xE0042000",
+      "size": 256,
+      "desc": "DBGMCU: IDCODE(디바이스/리비전 ID), 디버그 프리즈",
+      "ok": true,
+      "file": "raw/regions_reset/ppb_dbgmcu.bin"
+    },
+    {
+      "name": "ppb_romtable",
+      "addr": "0xE00FF000",
+      "size": 4096,
+      "desc": "CoreSight ROM table: 탑재된 디버그 컴포넌트 목록",
+      "ok": true,
+      "file": "raw/regions_reset/ppb_romtable.bin"
+    },
+    {
+      "name": "factory_uid_area",
+      "addr": "0x1FF0F000",
+      "size": 4096,
+      "desc": "UID/Flash size/ADC 캘리브레이션이 있는 팩토리 영역",
+      "ok": true,
+      "file": "raw/regions_reset/factory_uid_area.bin"
+    },
+    {
+      "name": "factory_pkg_area",
+      "addr": "0x1FF07800",
+      "size": 2048,
+      "desc": "패키지 데이터 레지스터 영역(0x1FF07BF0)",
+      "ok": true,
+      "file": "raw/regions_reset/factory_pkg_area.bin"
+    },
+    {
+      "name": "sysmem_bootloader",
+      "addr": "0x1FF00000",
+      "size": 32768,
+      "desc": "시스템 메모리 부트로더 코드 (ST 내장)",
+      "ok": true,
+      "file": "raw/regions_reset/sysmem_bootloader.bin"
+    },
+    {
+      "name": "option_bytes",
+      "addr": "0x1FFF0000",
+      "size": 32,
+      "desc": "옵션 바이트 (RDP/BOR/WDG/BOOT 설정)",
+      "ok": true,
+      "file": "raw/regions_reset/option_bytes.bin"
+    },
+    {
+      "name": "rcc",
+      "addr": "0x40023800",
+      "size": 256,
+      "desc": "RCC: 클럭 트리 현재 설정 + 페리페럴 클럭 인에이블 상태",
+      "ok": true,
+      "file": "raw/regions_reset/rcc.bin"
+    },
+    {
+      "name": "flash_if",
+      "addr": "0x40023C00",
+      "size": 256,
+      "desc": "FLASH 인터페이스: ACR(wait state/ART), OPTCR",
+      "ok": true,
+      "file": "raw/regions_reset/flash_if.bin"
+    },
+    {
+      "name": "pwr",
+      "addr": "0x40007000",
+      "size": 32,
+      "desc": "PWR: 전압 스케일링/over-drive 상태",
+      "ok": true,
+      "file": "raw/regions_reset/pwr.bin"
+    },
+    {
+      "name": "syscfg",
+      "addr": "0x40013800",
+      "size": 64,
+      "desc": "SYSCFG: 메모리 리맵, EXTI 소스",
+      "ok": true,
+      "file": "raw/regions_reset/syscfg.bin"
+    },
+    {
+      "name": "crc",
+      "addr": "0x40023000",
+      "size": 32,
+      "desc": "CRC 계산 유닛",
+      "ok": true,
+      "file": "raw/regions_reset/crc.bin"
+    },
+    {
+      "name": "gpio_all",
+      "addr": "0x40020000",
+      "size": 11264,
+      "desc": "GPIOA~GPIOK (포트당 0x400, 11포트)",
+      "ok": true,
+      "file": "raw/regions_reset/gpio_all.bin"
+    },
+    {
+      "name": "dma1",
+      "addr": "0x40026000",
+      "size": 256,
+      "desc": "DMA1 컨트롤러",
+      "ok": true,
+      "file": "raw/regions_reset/dma1.bin"
+    },
+    {
+      "name": "dma2",
+      "addr": "0x40026400",
+      "size": 256,
+      "desc": "DMA2 컨트롤러",
+      "ok": true,
+      "file": "raw/regions_reset/dma2.bin"
+    },
+    {
+      "name": "dma2d",
+      "addr": "0x4002B000",
+      "size": 256,
+      "desc": "DMA2D (Chrom-ART 그래픽 가속기)",
+      "ok": true,
+      "file": "raw/regions_reset/dma2d.bin"
+    },
+    {
+      "name": "fmc",
+      "addr": "0xA0000000",
+      "size": 512,
+      "desc": "FMC: SDRAM/NOR/NAND 컨트롤러 (SDCR/SDTR 타이밍)",
+      "ok": true,
+      "file": "raw/regions_reset/fmc.bin"
+    },
+    {
+      "name": "quadspi",
+      "addr": "0xA0001000",
+      "size": 256,
+      "desc": "QUADSPI 컨트롤러",
+      "ok": true,
+      "file": "raw/regions_reset/quadspi.bin"
+    },
+    {
+      "name": "ltdc",
+      "addr": "0x40016800",
+      "size": 512,
+      "desc": "LTDC LCD-TFT 컨트롤러 (해상도/타이밍 현재 설정)",
+      "ok": true,
+      "file": "raw/regions_reset/ltdc.bin"
+    },
+    {
+      "name": "dcmi",
+      "addr": "0x50050000",
+      "size": 256,
+      "desc": "DCMI 카메라 인터페이스",
+      "ok": true,
+      "file": "raw/regions_reset/dcmi.bin"
+    },
+    {
+      "name": "jpeg",
+      "addr": "0x50051000",
+      "size": 256,
+      "desc": "JPEG 하드웨어 코덱",
+      "ok": false,
+      "file": null,
+      "error": [
+        "  Size          : 256 Bytes",
+        "  Address:      : 0x50051000",
+        "Error: Data read failed"
+      ]
+    },
+    {
+      "name": "usart1",
+      "addr": "0x40011000",
+      "size": 64,
+      "desc": "USART1 (ST-LINK VCP 후보)",
+      "ok": true,
+      "file": "raw/regions_reset/usart1.bin"
+    },
+    {
+      "name": "usart6",
+      "addr": "0x40011400",
+      "size": 64,
+      "desc": "USART6",
+      "ok": true,
+      "file": "raw/regions_reset/usart6.bin"
+    },
+    {
+      "name": "uart_bank_apb1",
+      "addr": "0x40004400",
+      "size": 1024,
+      "desc": "USART2/3, UART4/5 (APB1 연속 영역)",
+      "ok": true,
+      "file": "raw/regions_reset/uart_bank_apb1.bin"
+    },
+    {
+      "name": "i2c_bank",
+      "addr": "0x40005400",
+      "size": 3072,
+      "desc": "I2C1/2/3 (APB1)",
+      "ok": true,
+      "file": "raw/regions_reset/i2c_bank.bin"
+    },
+    {
+      "name": "spi_bank_apb1",
+      "addr": "0x40003800",
+      "size": 3072,
+      "desc": "SPI2/3, SPDIFRX 영역",
+      "ok": true,
+      "file": "raw/regions_reset/spi_bank_apb1.bin"
+    },
+    {
+      "name": "adc_bank",
+      "addr": "0x40012000",
+      "size": 1024,
+      "desc": "ADC1/2/3 + 공통 레지스터",
+      "ok": true,
+      "file": "raw/regions_reset/adc_bank.bin"
+    },
+    {
+      "name": "sdmmc1",
+      "addr": "0x40012C00",
+      "size": 256,
+      "desc": "SDMMC1 (microSD)",
+      "ok": true,
+      "file": "raw/regions_reset/sdmmc1.bin"
+    },
+    {
+      "name": "rng",
+      "addr": "0x50060800",
+      "size": 32,
+      "desc": "RNG 난수 발생기",
+      "ok": true,
+      "file": "raw/regions_reset/rng.bin"
+    },
+    {
+      "name": "rtc",
+      "addr": "0x40002800",
+      "size": 256,
+      "desc": "RTC + 백업 레지스터",
+      "ok": true,
+      "file": "raw/regions_reset/rtc.bin"
+    },
+    {
+      "name": "iwdg",
+      "addr": "0x40003000",
+      "size": 32,
+      "desc": "독립 워치독",
+      "ok": true,
+      "file": "raw/regions_reset/iwdg.bin"
+    },
+    {
+      "name": "wwdg",
+      "addr": "0x40002C00",
+      "size": 32,
+      "desc": "윈도우 워치독",
+      "ok": true,
+      "file": "raw/regions_reset/wwdg.bin"
+    },
+    {
+      "name": "tim1",
+      "addr": "0x40010000",
+      "size": 256,
+      "desc": "TIM1 (고급 제어 타이머)",
+      "ok": true,
+      "file": "raw/regions_reset/tim1.bin"
+    },
+    {
+      "name": "tim2",
+      "addr": "0x40000000",
+      "size": 256,
+      "desc": "TIM2 (32비트 범용 타이머)",
+      "ok": true,
+      "file": "raw/regions_reset/tim2.bin"
+    },
+    {
+      "name": "eth",
+      "addr": "0x40028000",
+      "size": 1024,
+      "desc": "Ethernet MAC",
+      "ok": true,
+      "file": "raw/regions_reset/eth.bin"
+    },
+    {
+      "name": "usb_hs_core",
+      "addr": "0x40040000",
+      "size": 1024,
+      "desc": "USB OTG HS 코어 레지스터",
+      "ok": true,
+      "file": "raw/regions_reset/usb_hs_core.bin"
+    },
+    {
+      "name": "usb_fs_core",
+      "addr": "0x50000000",
+      "size": 1024,
+      "desc": "USB OTG FS 코어 레지스터",
+      "ok": true,
+      "file": "raw/regions_reset/usb_fs_core.bin"
+    },
+    {
+      "name": "mem_itcm_head",
+      "addr": "0x00000000",
+      "size": 64,
+      "desc": "ITCM 선두 (0x00000000)",
+      "ok": true,
+      "file": "raw/regions_reset/mem_itcm_head.bin"
+    },
+    {
+      "name": "mem_flash_itcm_alias",
+      "addr": "0x00200000",
+      "size": 64,
+      "desc": "Flash의 ITCM 별칭 (0x00200000)",
+      "ok": true,
+      "file": "raw/regions_reset/mem_flash_itcm_alias.bin"
+    },
+    {
+      "name": "mem_flash_axim",
+      "addr": "0x08000000",
+      "size": 64,
+      "desc": "Flash AXIM 별칭 (0x08000000) = 벡터 테이블",
+      "ok": true,
+      "file": "raw/regions_reset/mem_flash_axim.bin"
+    },
+    {
+      "name": "mem_dtcm_head",
+      "addr": "0x20000000",
+      "size": 64,
+      "desc": "DTCM 선두 (0x20000000)",
+      "ok": true,
+      "file": "raw/regions_reset/mem_dtcm_head.bin"
+    },
+    {
+      "name": "mem_sram1_head",
+      "addr": "0x20010000",
+      "size": 64,
+      "desc": "SRAM1 선두 (0x20010000)",
+      "ok": true,
+      "file": "raw/regions_reset/mem_sram1_head.bin"
+    },
+    {
+      "name": "mem_sram2_head",
+      "addr": "0x2004C000",
+      "size": 64,
+      "desc": "SRAM2 선두 (0x2004C000)",
+      "ok": true,
+      "file": "raw/regions_reset/mem_sram2_head.bin"
+    },
+    {
+      "name": "mem_bkpsram",
+      "addr": "0x40024000",
+      "size": 64,
+      "desc": "백업 SRAM (0x40024000)",
+      "ok": true,
+      "file": "raw/regions_reset/mem_bkpsram.bin"
+    },
+    {
+      "name": "mem_sdram_head",
+      "addr": "0xC0000000",
+      "size": 64,
+      "desc": "외부 SDRAM 선두 (FMC Bank5/6, 0xC0000000)",
+      "ok": true,
+      "file": "raw/regions_reset/mem_sdram_head.bin"
+    },
+    {
+      "name": "mem_qspi_head",
+      "addr": "0x90000000",
+      "size": 64,
+      "desc": "QSPI 메모리맵 모드 선두 (0x90000000)",
+      "ok": true,
+      "file": "raw/regions_reset/mem_qspi_head.bin"
+    }
+  ],
+  "single_regs": [
+    {
+      "name": "CPUID",
+      "addr": "0xE000ED00",
+      "value": "0x410FC271",
+      "desc": "코어 식별 (Cortex-M7 r0p1 = 0x410FC271)"
+    },
+    {
+      "name": "DBGMCU_IDCODE",
+      "addr": "0xE0042000",
+      "value": "0x10016449",
+      "desc": "DEV_ID[11:0] / REV_ID[31:16]"
+    },
+    {
+      "name": "FLASH_SIZE",
+      "addr": "0x1FF0F442",
+      "value": "0xB0770400",
+      "desc": "Flash 용량(KB), 하위 16비트"
+    },
+    {
+      "name": "PACKAGE",
+      "addr": "0x1FF07BF0",
+      "value": "0xFFFFFFFF",
+      "desc": "패키지 데이터 레지스터"
+    },
+    {
+      "name": "UID0",
+      "addr": "0x1FF0F420",
+      "value": "0x00340033",
+      "desc": "Unique device ID [31:0]"
+    },
+    {
+      "name": "UID1",
+      "addr": "0x1FF0F424",
+      "value": "0x54435008",
+      "desc": "Unique device ID [63:32]"
+    },
+    {
+      "name": "UID2",
+      "addr": "0x1FF0F428",
+      "value": "0x20353036",
+      "desc": "Unique device ID [95:64]"
+    },
+    {
+      "name": "CLIDR",
+      "addr": "0xE000ED78",
+      "value": "0x09000003",
+      "desc": "Cache Level ID"
+    },
+    {
+      "name": "CTR",
+      "addr": "0xE000ED7C",
+      "value": "0x8303C003",
+      "desc": "Cache Type Register"
+    },
+    {
+      "name": "CCSIDR",
+      "addr": "0xE000ED80",
+      "value": "0xF003E019",
+      "desc": "Cache Size ID (CSSELR로 선택된 캐시)"
+    },
+    {
+      "name": "CSSELR",
+      "addr": "0xE000ED84",
+      "value": "0x00000000",
+      "desc": "Cache Size Selection"
+    },
+    {
+      "name": "MPU_TYPE",
+      "addr": "0xE000ED90",
+      "value": "0x00000800",
+      "desc": "MPU 리전 수"
+    },
+    {
+      "name": "MVFR0",
+      "addr": "0xE000EF40",
+      "value": "0x10110021",
+      "desc": "FPU 기능 레지스터 0"
+    },
+    {
+      "name": "MVFR1",
+      "addr": "0xE000EF44",
+      "value": "0x11000011",
+      "desc": "FPU 기능 레지스터 1"
+    },
+    {
+      "name": "MVFR2",
+      "addr": "0xE000EF48",
+      "value": "0x00000040",
+      "desc": "FPU 기능 레지스터 2"
+    },
+    {
+      "name": "ITCMCR",
+      "addr": "0xE000EF90",
+      "value": "0x00000073",
+      "desc": "ITCM 제어"
+    },
+    {
+      "name": "DTCMCR",
+      "addr": "0xE000EF94",
+      "value": "0x0000003B",
+      "desc": "DTCM 제어"
+    },
+    {
+      "name": "AHBPCR",
+      "addr": "0xE000EF98",
+      "value": "0x00000009",
+      "desc": "AHBP(페리페럴 포트) 제어"
+    },
+    {
+      "name": "CACR",
+      "addr": "0xE000EF9C",
+      "value": "0x00000002",
+      "desc": "L1 캐시 제어 (FORCEWT/ECCEN/SIWT)"
+    },
+    {
+      "name": "AHBSCR",
+      "addr": "0xE000EFA0",
+      "value": "0x00000800",
+      "desc": "AHBS(슬레이브 포트) 제어"
+    },
+    {
+      "name": "ABFSR",
+      "addr": "0xE000EFA8",
+      "value": "0x00000000",
+      "desc": "Auxiliary Bus Fault Status"
+    },
+    {
+      "name": "ACTLR",
+      "addr": "0xE000E008",
+      "value": "0x00000000",
+      "desc": "Auxiliary Control (분기폴딩/스토어버퍼 비활성 비트)"
+    },
+    {
+      "name": "SCB_CCR",
+      "addr": "0xE000ED14",
+      "value": "0x00040200",
+      "desc": "Configuration & Control (IC/DC 인에이블 비트)"
+    },
+    {
+      "name": "SCB_CPACR",
+      "addr": "0xE000ED88",
+      "value": "0x00000000",
+      "desc": "코프로세서 접근 (FPU 인에이블)"
+    },
+    {
+      "name": "SYST_CALIB",
+      "addr": "0xE000E01C",
+      "value": "0x4000493E",
+      "desc": "SysTick 캘리브레이션 (TENMS)"
+    },
+    {
+      "name": "ICTR",
+      "addr": "0xE000E004",
+      "value": "0x00000003",
+      "desc": "인터럽트 컨트롤러 타입 (지원 IRQ 수)"
+    },
+    {
+      "name": "FP_CTRL",
+      "addr": "0xE0002000",
+      "value": "0x10000080",
+      "desc": "FPB: 하드웨어 브레이크포인트 개수"
+    },
+    {
+      "name": "DWT_CTRL",
+      "addr": "0xE0001000",
+      "value": "0x00000000",
+      "desc": "DWT: 지원 비교기 수 및 기능"
+    },
+    {
+      "name": "ID_PFR0",
+      "addr": "0xE000ED40",
+      "value": "0x00000030",
+      "desc": "프로세서 기능 레지스터 0"
+    },
+    {
+      "name": "ID_PFR1",
+      "addr": "0xE000ED44",
+      "value": "0x00000200",
+      "desc": "프로세서 기능 레지스터 1"
+    },
+    {
+      "name": "ID_DFR0",
+      "addr": "0xE000ED48",
+      "value": "0x00100000",
+      "desc": "디버그 기능 레지스터 0"
+    },
+    {
+      "name": "ID_AFR0",
+      "addr": "0xE000ED4C",
+      "value": "0x00000000",
+      "desc": "보조 기능 레지스터 0"
+    },
+    {
+      "name": "ID_MMFR0",
+      "addr": "0xE000ED50",
+      "value": "0x00110030",
+      "desc": "메모리 모델 기능 0"
+    },
+    {
+      "name": "ID_MMFR1",
+      "addr": "0xE000ED54",
+      "value": "0x00000000",
+      "desc": "메모리 모델 기능 1"
+    },
+    {
+      "name": "ID_MMFR2",
+      "addr": "0xE000ED58",
+      "value": "0x01000000",
+      "desc": "메모리 모델 기능 2"
+    },
+    {
+      "name": "ID_MMFR3",
+      "addr": "0xE000ED5C",
+      "value": "0x00000000",
+      "desc": "메모리 모델 기능 3"
+    },
+    {
+      "name": "ID_ISAR0",
+      "addr": "0xE000ED60",
+      "value": "0x01101110",
+      "desc": "명령어 집합 속성 0"
+    },
+    {
+      "name": "ID_ISAR1",
+      "addr": "0xE000ED64",
+      "value": "0x02112000",
+      "desc": "명령어 집합 속성 1"
+    },
+    {
+      "name": "ID_ISAR2",
+      "addr": "0xE000ED68",
+      "value": "0x20232231",
+      "desc": "명령어 집합 속성 2"
+    },
+    {
+      "name": "ID_ISAR3",
+      "addr": "0xE000ED6C",
+      "value": "0x01111131",
+      "desc": "명령어 집합 속성 3"
+    },
+    {
+      "name": "ID_ISAR4",
+      "addr": "0xE000ED70",
+      "value": "0x01310132",
+      "desc": "명령어 집합 속성 4"
+    },
+    {
+      "name": "RCC_CR",
+      "addr": "0x40023800",
+      "value": "0x00008283",
+      "desc": "RCC 제어: HSE/HSI/PLL 상태"
+    },
+    {
+      "name": "RCC_PLLCFGR",
+      "addr": "0x40023804",
+      "value": "0x24003010",
+      "desc": "PLL 설정 (M/N/P/Q)"
+    },
+    {
+      "name": "RCC_CFGR",
+      "addr": "0x40023808",
+      "value": "0x00000000",
+      "desc": "SYSCLK 소스, AHB/APB 프리스케일러"
+    },
+    {
+      "name": "FLASH_ACR",
+      "addr": "0x40023C00",
+      "value": "0x00000000",
+      "desc": "Flash wait state + ART accelerator"
+    },
+    {
+      "name": "FLASH_OPTCR",
+      "addr": "0x40023C14",
+      "value": "0xC0FFAAFD",
+      "desc": "옵션 바이트 제어 (RDP/BOR/nRST)"
+    },
+    {
+      "name": "PWR_CR1",
+      "addr": "0x40007000",
+      "value": "0x0000C000",
+      "desc": "전압 스케일링/over-drive"
+    },
+    {
+      "name": "PWR_CSR1",
+      "addr": "0x40007004",
+      "value": "0x00000000",
+      "desc": "전압 스케일링 준비 플래그"
+    }
+  ],
+  "cache_ids": null,
+  "note": "PPB(0xE00.....)/팩토리 영역은 하드웨어 고유값. 페리페럴 레지스터는 덤프 시점에 보드에서 실행 중이던 펌웨어의 설정임."
+}

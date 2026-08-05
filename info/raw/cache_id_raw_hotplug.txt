@@ -1,0 +1,101 @@
+--- CSSELR=0 (dcache_L1) ---
+      -------------------------------------------------------------------
+                        STM32CubeProgrammer v2.23.0                  
+      -------------------------------------------------------------------
+
+ST-LINK SN  : 0668FF39314D423143034442
+ST-LINK FW  : V2J46M33
+Board       : STM32F7508-DK
+Voltage     : 3.23V
+SWD freq    : 4000 KHz
+Connect mode: Hot Plug
+Reset mode  : Software reset
+Device ID   : 0x449
+Revision ID : Rev Z
+Device name : STM32F74x/STM32F75x
+NVM size    : 1 MBytes
+Device type : MCU
+Device CPU  : Cortex-M7
+BL Version  : 0x90
+Debug in Low Power mode enabled
+
+Core halted
+Write 32-bit data
+w @0xe000ed84:  0x00000000
+
+
+Downloading...
+
+32-bit data download complete
+
+Reading 32-bit memory content
+  Size          : 4 Bytes
+  Address:      : 0xE000ED80
+0xE000ED80 : F003E019
+
+
+
+Reading 32-bit memory content
+  Size          : 4 Bytes
+  Address:      : 0xE000ED78
+0xE000ED78 : 09000003
+
+
+
+Reading 32-bit memory content
+  Size          : 4 Bytes
+  Address:      : 0xE000ED7C
+0xE000ED7C : 8303C003
+
+
+
+--- CSSELR=1 (icache_L1) ---
+      -------------------------------------------------------------------
+                        STM32CubeProgrammer v2.23.0                  
+      -------------------------------------------------------------------
+
+ST-LINK SN  : 0668FF39314D423143034442
+ST-LINK FW  : V2J46M33
+Board       : STM32F7508-DK
+Voltage     : 3.23V
+SWD freq    : 4000 KHz
+Connect mode: Hot Plug
+Reset mode  : Software reset
+Device ID   : 0x449
+Revision ID : Rev Z
+Device name : STM32F74x/STM32F75x
+NVM size    : 1 MBytes
+Device type : MCU
+Device CPU  : Cortex-M7
+BL Version  : 0x90
+Debug in Low Power mode enabled
+
+Core halted
+Write 32-bit data
+w @0xe000ed84:  0x00000001
+
+
+Downloading...
+
+32-bit data download complete
+
+Reading 32-bit memory content
+  Size          : 4 Bytes
+  Address:      : 0xE000ED80
+0xE000ED80 : F007E009
+
+
+
+Reading 32-bit memory content
+  Size          : 4 Bytes
+  Address:      : 0xE000ED78
+0xE000ED78 : 09000003
+
+
+
+Reading 32-bit memory content
+  Size          : 4 Bytes
+  Address:      : 0xE000ED7C
+0xE000ED7C : 8303C003
+
+

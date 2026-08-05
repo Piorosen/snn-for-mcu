@@ -1,0 +1,665 @@
+{
+  "toolchain": {
+    "gcc_version": "arm-none-eabi-gcc (GNU Tools for STM32 14.3.rel1.20251027-0700) 14.3.1 20250623",
+    "target_triplet": "arm-none-eabi",
+    "arch_macros": {
+      "__ARM_32BIT_STATE": "1",
+      "__ARM_ARCH": "7",
+      "__ARM_ARCH_7EM__": "1",
+      "__ARM_ARCH_EXT_IDIV__": "1",
+      "__ARM_ARCH_ISA_THUMB": "2",
+      "__ARM_ARCH_PROFILE": "77",
+      "__ARM_ASM_SYNTAX_UNIFIED__": "1",
+      "__ARM_EABI__": "1",
+      "__ARM_FEATURE_CLZ": "1",
+      "__ARM_FEATURE_COPROC": "15",
+      "__ARM_FEATURE_DSP": "1",
+      "__ARM_FEATURE_FMA": "1",
+      "__ARM_FEATURE_IDIV": "1",
+      "__ARM_FEATURE_LDREX": "7",
+      "__ARM_FEATURE_QBIT": "1",
+      "__ARM_FEATURE_SAT": "1",
+      "__ARM_FEATURE_SIMD32": "1",
+      "__ARM_FEATURE_UNALIGNED": "1",
+      "__ARM_FP": "4",
+      "__ARM_PCS_VFP": "1",
+      "__ARM_SIZEOF_MINIMAL_ENUM": "1",
+      "__ARM_SIZEOF_WCHAR_T": "4",
+      "__THUMBEL__": "1",
+      "__THUMB_INTERWORK__": "1",
+      "__VFP_FP__": "1"
+    },
+    "multilib_selected": "thumb/v7e-m+fp/hard",
+    "libc_nano_path": "/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.macosaarch64_1.0.0.202602081740/tools/bin/../lib/gcc/arm-none-eabi/14.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a"
+  },
+  "cmsis_header": {
+    "irqs": [
+      {
+        "name": "NonMaskableInt",
+        "number": -14,
+        "desc": "2 Non Maskable Interrupt"
+      },
+      {
+        "name": "MemoryManagement",
+        "number": -12,
+        "desc": "4 Cortex-M7 Memory Management Interrupt"
+      },
+      {
+        "name": "BusFault",
+        "number": -11,
+        "desc": "5 Cortex-M7 Bus Fault Interrupt"
+      },
+      {
+        "name": "UsageFault",
+        "number": -10,
+        "desc": "6 Cortex-M7 Usage Fault Interrupt"
+      },
+      {
+        "name": "SVCall",
+        "number": -5,
+        "desc": "11 Cortex-M7 SV Call Interrupt"
+      },
+      {
+        "name": "DebugMonitor",
+        "number": -4,
+        "desc": "12 Cortex-M7 Debug Monitor Interrupt"
+      },
+      {
+        "name": "PendSV",
+        "number": -2,
+        "desc": "14 Cortex-M7 Pend SV Interrupt"
+      },
+      {
+        "name": "SysTick",
+        "number": -1,
+        "desc": "15 Cortex-M7 System Tick Interrupt"
+      },
+      {
+        "name": "WWDG",
+        "number": 0,
+        "desc": "Window WatchDog Interrupt"
+      },
+      {
+        "name": "PVD",
+        "number": 1,
+        "desc": "PVD through EXTI Line detection Interrupt"
+      },
+      {
+        "name": "TAMP_STAMP",
+        "number": 2,
+        "desc": "Tamper and TimeStamp interrupts through the EXTI line"
+      },
+      {
+        "name": "RTC_WKUP",
+        "number": 3,
+        "desc": "RTC Wakeup interrupt through the EXTI line"
+      },
+      {
+        "name": "FLASH",
+        "number": 4,
+        "desc": "FLASH global Interrupt"
+      },
+      {
+        "name": "RCC",
+        "number": 5,
+        "desc": "RCC global Interrupt"
+      },
+      {
+        "name": "EXTI0",
+        "number": 6,
+        "desc": "EXTI Line0 Interrupt"
+      },
+      {
+        "name": "EXTI1",
+        "number": 7,
+        "desc": "EXTI Line1 Interrupt"
+      },
+      {
+        "name": "EXTI2",
+        "number": 8,
+        "desc": "EXTI Line2 Interrupt"
+      },
+      {
+        "name": "EXTI3",
+        "number": 9,
+        "desc": "EXTI Line3 Interrupt"
+      },
+      {
+        "name": "EXTI4",
+        "number": 10,
+        "desc": "EXTI Line4 Interrupt"
+      },
+      {
+        "name": "DMA1_Stream0",
+        "number": 11,
+        "desc": "DMA1 Stream 0 global Interrupt"
+      },
+      {
+        "name": "DMA1_Stream1",
+        "number": 12,
+        "desc": "DMA1 Stream 1 global Interrupt"
+      },
+      {
+        "name": "DMA1_Stream2",
+        "number": 13,
+        "desc": "DMA1 Stream 2 global Interrupt"
+      },
+      {
+        "name": "DMA1_Stream3",
+        "number": 14,
+        "desc": "DMA1 Stream 3 global Interrupt"
+      },
+      {
+        "name": "DMA1_Stream4",
+        "number": 15,
+        "desc": "DMA1 Stream 4 global Interrupt"
+      },
+      {
+        "name": "DMA1_Stream5",
+        "number": 16,
+        "desc": "DMA1 Stream 5 global Interrupt"
+      },
+      {
+        "name": "DMA1_Stream6",
+        "number": 17,
+        "desc": "DMA1 Stream 6 global Interrupt"
+      },
+      {
+        "name": "ADC",
+        "number": 18,
+        "desc": "ADC1, ADC2 and ADC3 global Interrupts"
+      },
+      {
+        "name": "CAN1_TX",
+        "number": 19,
+        "desc": "CAN1 TX Interrupt"
+      },
+      {
+        "name": "CAN1_RX0",
+        "number": 20,
+        "desc": "CAN1 RX0 Interrupt"
+      },
+      {
+        "name": "CAN1_RX1",
+        "number": 21,
+        "desc": "CAN1 RX1 Interrupt"
+      },
+      {
+        "name": "CAN1_SCE",
+        "number": 22,
+        "desc": "CAN1 SCE Interrupt"
+      },
+      {
+        "name": "EXTI9_5",
+        "number": 23,
+        "desc": "External Line[9:5] Interrupts"
+      },
+      {
+        "name": "TIM1_BRK_TIM9",
+        "number": 24,
+        "desc": "TIM1 Break interrupt and TIM9 global interrupt"
+      },
+      {
+        "name": "TIM1_UP_TIM10",
+        "number": 25,
+        "desc": "TIM1 Update Interrupt and TIM10 global interrupt"
+      },
+      {
+        "name": "TIM1_TRG_COM_TIM11",
+        "number": 26,
+        "desc": "TIM1 Trigger and Commutation Interrupt and TIM11 global interrupt"
+      },
+      {
+        "name": "TIM1_CC",
+        "number": 27,
+        "desc": "TIM1 Capture Compare Interrupt"
+      },
+      {
+        "name": "TIM2",
+        "number": 28,
+        "desc": "TIM2 global Interrupt"
+      },
+      {
+        "name": "TIM3",
+        "number": 29,
+        "desc": "TIM3 global Interrupt"
+      },
+      {
+        "name": "TIM4",
+        "number": 30,
+        "desc": "TIM4 global Interrupt"
+      },
+      {
+        "name": "I2C1_EV",
+        "number": 31,
+        "desc": "I2C1 Event Interrupt"
+      },
+      {
+        "name": "I2C1_ER",
+        "number": 32,
+        "desc": "I2C1 Error Interrupt"
+      },
+      {
+        "name": "I2C2_EV",
+        "number": 33,
+        "desc": "I2C2 Event Interrupt"
+      },
+      {
+        "name": "I2C2_ER",
+        "number": 34,
+        "desc": "I2C2 Error Interrupt"
+      },
+      {
+        "name": "SPI1",
+        "number": 35,
+        "desc": "SPI1 global Interrupt"
+      },
+      {
+        "name": "SPI2",
+        "number": 36,
+        "desc": "SPI2 global Interrupt"
+      },
+      {
+        "name": "USART1",
+        "number": 37,
+        "desc": "USART1 global Interrupt"
+      },
+      {
+        "name": "USART2",
+        "number": 38,
+        "desc": "USART2 global Interrupt"
+      },
+      {
+        "name": "USART3",
+        "number": 39,
+        "desc": "USART3 global Interrupt"
+      },
+      {
+        "name": "EXTI15_10",
+        "number": 40,
+        "desc": "External Line[15:10] Interrupts"
+      },
+      {
+        "name": "RTC_Alarm",
+        "number": 41,
+        "desc": "RTC Alarm (A and B) through EXTI Line Interrupt"
+      },
+      {
+        "name": "OTG_FS_WKUP",
+        "number": 42,
+        "desc": "USB OTG FS Wakeup through EXTI line interrupt"
+      },
+      {
+        "name": "TIM8_BRK_TIM12",
+        "number": 43,
+        "desc": "TIM8 Break Interrupt and TIM12 global interrupt"
+      },
+      {
+        "name": "TIM8_UP_TIM13",
+        "number": 44,
+        "desc": "TIM8 Update Interrupt and TIM13 global interrupt"
+      },
+      {
+        "name": "TIM8_TRG_COM_TIM14",
+        "number": 45,
+        "desc": "TIM8 Trigger and Commutation Interrupt and TIM14 global interrupt"
+      },
+      {
+        "name": "TIM8_CC",
+        "number": 46,
+        "desc": "TIM8 Capture Compare Interrupt"
+      },
+      {
+        "name": "DMA1_Stream7",
+        "number": 47,
+        "desc": "DMA1 Stream7 Interrupt"
+      },
+      {
+        "name": "FMC",
+        "number": 48,
+        "desc": "FMC global Interrupt"
+      },
+      {
+        "name": "SDMMC1",
+        "number": 49,
+        "desc": "SDMMC1 global Interrupt"
+      },
+      {
+        "name": "TIM5",
+        "number": 50,
+        "desc": "TIM5 global Interrupt"
+      },
+      {
+        "name": "SPI3",
+        "number": 51,
+        "desc": "SPI3 global Interrupt"
+      },
+      {
+        "name": "UART4",
+        "number": 52,
+        "desc": "UART4 global Interrupt"
+      },
+      {
+        "name": "UART5",
+        "number": 53,
+        "desc": "UART5 global Interrupt"
+      },
+      {
+        "name": "TIM6_DAC",
+        "number": 54,
+        "desc": "TIM6 global and DAC1&2 underrun error  interrupts"
+      },
+      {
+        "name": "TIM7",
+        "number": 55,
+        "desc": "TIM7 global interrupt"
+      },
+      {
+        "name": "DMA2_Stream0",
+        "number": 56,
+        "desc": "DMA2 Stream 0 global Interrupt"
+      },
+      {
+        "name": "DMA2_Stream1",
+        "number": 57,
+        "desc": "DMA2 Stream 1 global Interrupt"
+      },
+      {
+        "name": "DMA2_Stream2",
+        "number": 58,
+        "desc": "DMA2 Stream 2 global Interrupt"
+      },
+      {
+        "name": "DMA2_Stream3",
+        "number": 59,
+        "desc": "DMA2 Stream 3 global Interrupt"
+      },
+      {
+        "name": "DMA2_Stream4",
+        "number": 60,
+        "desc": "DMA2 Stream 4 global Interrupt"
+      },
+      {
+        "name": "ETH",
+        "number": 61,
+        "desc": "Ethernet global Interrupt"
+      },
+      {
+        "name": "ETH_WKUP",
+        "number": 62,
+        "desc": "Ethernet Wakeup through EXTI line Interrupt"
+      },
+      {
+        "name": "CAN2_TX",
+        "number": 63,
+        "desc": "CAN2 TX Interrupt"
+      },
+      {
+        "name": "CAN2_RX0",
+        "number": 64,
+        "desc": "CAN2 RX0 Interrupt"
+      },
+      {
+        "name": "CAN2_RX1",
+        "number": 65,
+        "desc": "CAN2 RX1 Interrupt"
+      },
+      {
+        "name": "CAN2_SCE",
+        "number": 66,
+        "desc": "CAN2 SCE Interrupt"
+      },
+      {
+        "name": "OTG_FS",
+        "number": 67,
+        "desc": "USB OTG FS global Interrupt"
+      },
+      {
+        "name": "DMA2_Stream5",
+        "number": 68,
+        "desc": "DMA2 Stream 5 global interrupt"
+      },
+      {
+        "name": "DMA2_Stream6",
+        "number": 69,
+        "desc": "DMA2 Stream 6 global interrupt"
+      },
+      {
+        "name": "DMA2_Stream7",
+        "number": 70,
+        "desc": "DMA2 Stream 7 global interrupt"
+      },
+      {
+        "name": "USART6",
+        "number": 71,
+        "desc": "USART6 global interrupt"
+      },
+      {
+        "name": "I2C3_EV",
+        "number": 72,
+        "desc": "I2C3 event interrupt"
+      },
+      {
+        "name": "I2C3_ER",
+        "number": 73,
+        "desc": "I2C3 error interrupt"
+      },
+      {
+        "name": "OTG_HS_EP1_OUT",
+        "number": 74,
+        "desc": "USB OTG HS End Point 1 Out global interrupt"
+      },
+      {
+        "name": "OTG_HS_EP1_IN",
+        "number": 75,
+        "desc": "USB OTG HS End Point 1 In global interrupt"
+      },
+      {
+        "name": "OTG_HS_WKUP",
+        "number": 76,
+        "desc": "USB OTG HS Wakeup through EXTI interrupt"
+      },
+      {
+        "name": "OTG_HS",
+        "number": 77,
+        "desc": "USB OTG HS global interrupt"
+      },
+      {
+        "name": "DCMI",
+        "number": 78,
+        "desc": "DCMI global interrupt"
+      },
+      {
+        "name": "RNG",
+        "number": 80,
+        "desc": "RNG global interrupt"
+      },
+      {
+        "name": "FPU",
+        "number": 81,
+        "desc": "FPU global interrupt"
+      },
+      {
+        "name": "UART7",
+        "number": 82,
+        "desc": "UART7 global interrupt"
+      },
+      {
+        "name": "UART8",
+        "number": 83,
+        "desc": "UART8 global interrupt"
+      },
+      {
+        "name": "SPI4",
+        "number": 84,
+        "desc": "SPI4 global Interrupt"
+      },
+      {
+        "name": "SPI5",
+        "number": 85,
+        "desc": "SPI5 global Interrupt"
+      },
+      {
+        "name": "SPI6",
+        "number": 86,
+        "desc": "SPI6 global Interrupt"
+      },
+      {
+        "name": "SAI1",
+        "number": 87,
+        "desc": "SAI1 global Interrupt"
+      },
+      {
+        "name": "LTDC",
+        "number": 88,
+        "desc": "LTDC global Interrupt"
+      },
+      {
+        "name": "LTDC_ER",
+        "number": 89,
+        "desc": "LTDC Error global Interrupt"
+      },
+      {
+        "name": "DMA2D",
+        "number": 90,
+        "desc": "DMA2D global Interrupt"
+      },
+      {
+        "name": "SAI2",
+        "number": 91,
+        "desc": "SAI2 global Interrupt"
+      },
+      {
+        "name": "QUADSPI",
+        "number": 92,
+        "desc": "Quad SPI global interrupt"
+      },
+      {
+        "name": "LPTIM1",
+        "number": 93,
+        "desc": "LP TIM1 interrupt"
+      },
+      {
+        "name": "CEC",
+        "number": 94,
+        "desc": "HDMI-CEC global Interrupt"
+      },
+      {
+        "name": "I2C4_EV",
+        "number": 95,
+        "desc": "I2C4 Event Interrupt"
+      },
+      {
+        "name": "I2C4_ER",
+        "number": 96,
+        "desc": "I2C4 Error Interrupt"
+      },
+      {
+        "name": "SPDIF_RX",
+        "number": 97,
+        "desc": "SPDIF-RX global Interrupt"
+      }
+    ],
+    "irq_count_total": 105,
+    "irq_count_peripheral": 97,
+    "irq_max_number": 97,
+    "base_defines_count": 109,
+    "memory_defines": {
+      "FLASH_END": "0x080FFFFF",
+      "FLASH_OTP_BASE": "0x1FF0F000",
+      "FLASH_OTP_END": "0x1FF0F41F",
+      "SRAM1_BASE": "0x20010000",
+      "SRAM2_BASE": "0x2004C000",
+      "BKPSRAM_BASE": "0x40024000",
+      "PERIPH_BASE": "0x40000000",
+      "QSPI_BASE": "0x90000000",
+      "FMC_R_BASE": "0xA0000000",
+      "RAMITCM_BASE": "0x00000000",
+      "FLASHITCM_BASE": "0x00200000"
+    },
+    "peripheral_instances": [
+      "ADC",
+      "ADC1",
+      "ADC123_COMMON",
+      "ADC2",
+      "ADC3",
+      "CAN1",
+      "CAN2",
+      "CEC",
+      "CRC",
+      "DAC",
+      "DAC1",
+      "DBGMCU",
+      "DCMI",
+      "DMA1",
+      "DMA2",
+      "ETH",
+      "EXTI",
+      "FLASH",
+      "GPIOA",
+      "GPIOB",
+      "GPIOC",
+      "GPIOD",
+      "GPIOE",
+      "GPIOF",
+      "GPIOG",
+      "GPIOH",
+      "GPIOI",
+      "GPIOJ",
+      "GPIOK",
+      "IWDG",
+      "LPTIM1",
+      "LTDC",
+      "PWR",
+      "QUADSPI",
+      "RCC",
+      "RNG",
+      "RTC",
+      "SAI1",
+      "SAI2",
+      "SDMMC1",
+      "SPDIFRX",
+      "SPI1",
+      "SPI2",
+      "SPI3",
+      "SPI4",
+      "SPI5",
+      "SPI6",
+      "SYSCFG",
+      "TIM1",
+      "TIM10",
+      "TIM11",
+      "TIM12",
+      "TIM13",
+      "TIM14",
+      "TIM2",
+      "TIM3",
+      "TIM4",
+      "TIM5",
+      "TIM6",
+      "TIM7",
+      "TIM8",
+      "TIM9",
+      "UART4",
+      "UART5",
+      "UART7",
+      "UART8",
+      "USART1",
+      "USART2",
+      "USART3",
+      "USART6",
+      "WWDG"
+    ],
+    "peripheral_instance_count": 71
+  },
+  "usb": {
+    "usb_stlink_block": "            STM32 STLink:\n\n              Product ID: 0x374b\n              Vendor ID: 0x0483  (STMicroelectronics)\n              Version: 1.00\n              Serial Number: 0668FF39314D423143034442\n              Speed: Up to 12 Mb/s\n              Manufacturer: STMicroelectronics\n              Location ID: 0x08330000 / 117\n              Current Available (mA): 500\n              Current Required (mA): 500\n              Extra Operating Current (mA): 0\n              Media:\n                microcontroller:\n                  Capacity: 3.2 MB (3,182,592 bytes)\n                  Removable Media: Yes\n                  BSD Name: disk5\n                  Logical Unit: 0\n                  Partition Map Type: Unknown\n                  S.M.A.R.T. status: Verified\n                  USB Interface: 1\n\n            AirPods Charging Case:\n\n              Product ID: 0x13a1\n              Vendor ID: 0x05ac (Apple Inc.)\n              Version: 51.0b\n              Serial Number: LNX23003GX\n              Speed: Up to 12 Mb/s",
+    "st_info_probe": "Found 1 stlink programmers\n  version:    V2J46S33\n  serial:     0668FF39314D423143034442\n  flash:      1048576 (pagesize: 2048)\n  sram:       327680\n  chipid:     0x449\n  dev-type:   STM32F74x_F75x\n",
+    "serial_ports": "crw-rw-rw-  1 root  wheel  0x9000003 Jul  3 02:00 /dev/cu.Bluetooth-Incoming-Port\ncrw-rw-rw-  1 root  wheel  0x9000001 Jul  3 00:05 /dev/cu.debug-console\ncrw-rw-rw-  1 root  wheel  0x9000005 Jul 27 15:17 /dev/cu.usbmodem83303\ncrw-rw-rw-  1 root  wheel  0x9000004 Jul 27 15:17 /dev/tty.usbmodem83303\n"
+  },
+  "firmware_footprint": {
+    "build": "/Users/chacha/Desktop/git/snn-for-mcu/ImageClassification/build/ImageClassification.elf  :\nsection                size        addr\n.isr_vector             456   134217728\n.text                104056   134218192\n.rodata              232456   134322256\n.ARM.extab                0   134554712\n.ARM                      8   134554712\n.preinit_array            0   134554720\n.init_array               8   134554720\n.fini_array               4   134554728\n.data                   500   536870912\n.bss                 266088   536871424\n._user_heap_stack      1536   537137512\n.ARM.attributes          48           0\n.debug_info         4071549           0\n.debug_abbrev        127617           0\n.debug_loclists      284528           0\n.debug_aranges        18008           0\n.debug_rnglists       18982           0\n.debug_macro         539489           0\n.debug_line          677659           0\n.debug_str          2112525           0\n.comment                 67           0\n.debug_frame          57528           0\n.debug_line_str         159           0\nTotal               8513271\n\n\n",
+    "build-release": "/Users/chacha/Desktop/git/snn-for-mcu/ImageClassification/build-release/ImageClassification.elf  :\nsection               size        addr\n.isr_vector            456   134217728\n.text               143672   134218192\n.rodata             228992   134361872\n.ARM.extab               0   134590864\n.ARM                     8   134590864\n.preinit_array           0   134590872\n.init_array              8   134590872\n.fini_array              4   134590880\n.data                  496   536870912\n.bss                266104   536871408\n._user_heap_stack     1536   537137512\n.ARM.attributes         48           0\n.comment                67           0\n.debug_frame          5316           0\nTotal               646707\n\n\n",
+    "build-v4": "/Users/chacha/Desktop/git/snn-for-mcu/ImageClassification/build-v4/ImageClassification.elf  :\nsection               size        addr\n.isr_vector            456   134217728\n.text               107996   134218192\n.rodata             216132   134326192\n.ARM.extab               0   134542324\n.ARM                     8   134542324\n.preinit_array           0   134542332\n.init_array              4   134542332\n.fini_array              4   134542336\n.data                  556   536870912\n.bss                 83412   536871472\n._user_heap_stack     1540   536954884\n.ARM.attributes         48           0\n.comment                67           0\n.debug_frame          5052           0\nTotal               415275\n\n\n"
+  }
+}

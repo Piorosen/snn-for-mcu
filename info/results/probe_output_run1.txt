@@ -1,0 +1,845 @@
+# STM32F746G-DISCO 온디바이스 프로브 결과
+# magic=0x50524231 (미완/실행중)
+# 로그 49630 bytes, 버퍼 초과로 버려진 0 bytes
+# 펌웨어가 보고한 SYSCLK = 200000000 Hz
+# 원시 바이너리: /Users/chacha/Desktop/git/snn-for-mcu/info/raw/probe_result_raw.bin
+======================================================================
+
+
+[boot] probe_set_sysclk(200) 반환 0
+
+================================================================
+== STM32F746G-DISCO 하드웨어 프로브
+================================================================
+펌웨어 빌드: Jul 27 2026 16:42:52
+SYSCLK=200000000 Hz  HCLK=200000000 Hz  PCLK1=50000000 Hz  PCLK2=100000000 Hz
+외부 메모리 초기화: SDRAM=OK  QSPI=OK
+결과 버퍼: 0x20035000 (94208 bytes)
+QSPI JEDEC ID: 0xEF4018  (제조사 0xEF, 타입 0x40, 용량코드 0x18)
+  제조사: Winbond
+  용량 코드 0x18 → 2^24 바이트 = 16 MB
+
+주: 이 파일의 모든 수치는 이 보드에서 직접 측정한 값이다 (신뢰도 A).
+
+================================================================
+== 레지스터 덤프: 칩이 스스로 밝히는 사양
+================================================================
+아래 값은 전부 이 보드의 실리콘에서 직접 읽은 것이다.
+원시값 옆의 해석은 ARMv7-M ARM / Cortex-M7 TRM / RM0385의 필드 정의를 적용한 결과이며,
+해석과 실제 동작이 어긋날 수 있는 항목은 그 사실을 함께 적었다.
+
+================================================================
+== 1. 코어 식별 (CPUID / 피처 레지스터)
+================================================================
+CPUID            @ 0xE000ED00 = 0x410FC271
+    Implementer=0x41 (ARM Limited)  Architecture=0xF (ARMv7-M 이상 (CPUID로는 구분 불가))
+    PartNo=0xC27 (Cortex-M7)  Variant=0  Revision=1
+    => Cortex-M7 r0p1  ; 이 실리콘의 코어 리비전
+
+  [ARMv7-M 피처 레지스터 원시값]
+ID_PFR0          @ 0xE000ED40 = 0x00000030
+ID_PFR1          @ 0xE000ED44 = 0x00000200
+ID_DFR0          @ 0xE000ED48 = 0x00100000
+ID_AFR0          @ 0xE000ED4C = 0x00000000
+ID_MMFR0         @ 0xE000ED50 = 0x00110030
+ID_MMFR1         @ 0xE000ED54 = 0x00000000
+ID_MMFR2         @ 0xE000ED58 = 0x01000000
+ID_MMFR3         @ 0xE000ED5C = 0x00000000
+ID_ISAR0         @ 0xE000ED60 = 0x01101110
+ID_ISAR1         @ 0xE000ED64 = 0x02112000
+ID_ISAR2         @ 0xE000ED68 = 0x20232231
+ID_ISAR3         @ 0xE000ED6C = 0x01111131
+ID_ISAR4         @ 0xE000ED70 = 0x01310132
+    ID_PFR0 State0(A32)=0 State1(T32)=3  ; T32=3 이면 Thumb-2 전용 프로파일
+    ID_PFR1 M-profile programmers' model=2  ; 2 = ARMv7-M 예외 모델
+    ID_DFR0 M-profile debug model=1  ; 1 = 브레이크포인트/워치포인트 기반 디버그
+    ID_MMFR0 PMSA 지원=3 (2=PMSAv6/v7 MPU), Aux control regs=1
+    ID_MMFR2 WFI/WFE 등 Mem barrier=1  ; 캐시 유지 명령 계열 존재 표시
+
+    ID_ISAR0 Divide=1 Debug=1 Coproc=0 CmpBranch=1 Bitfield=1 BitCount=1
+    ID_ISAR1 Interwork=2 Immediate=1 IfThen=1 Extend=2
+    ID_ISAR2 Reversal=2 MultU=2 MultS=3 Mult=2 MultiAccessInt=2 MemHint=3 LoadStore=1
+    ID_ISAR3 TrueNOP=1 T32Copy=1 TabBranch=1 SynchPrim=1 SVC=1 SIMD=3 Saturate=1
+    ID_ISAR4 PSR_M=1 SynchPrimFrac=3 Barrier=1 Writeback=0 WithShifts=1 Unpriv=3
+  [명령어 지원 판정]
+    하드웨어 나눗셈(SDIV/UDIV): 지원 (Divide_instrs=1)
+    포화 연산(SSAT/USAT): 지원 / QADD·QSUB류: 지원 (Saturate_instrs=1)
+    패킹 SIMD(DSP 확장, SADD16/SMLAD/PKHBT 등): 지원 → ARMv7E-M, CMSIS-DSP/CMSIS-NN의 __SIMD32 경로 사용 가능 (SIMD_instrs=3)
+    부호있는 곱셈 확장(SMLABB/SMLAD 등): SMLAD/SMUAD까지 지원 (MultS_instrs=3)
+    무부호 곱셈 확장(UMAAL): 지원 (MultU_instrs=2)
+    배타적 접근(LDREX/STREX): 지원, CLREX/바이트·하프워드 변형: 지원
+    메모리 배리어(DSB/DMB/ISB): 지원 / 코프로세서 명령: 없음
+
+  [인터럽트 컨트롤러]
+ICTR             @ 0xE000E004 = 0x00000003
+    INTLINESNUM=3 → NVIC가 지원하는 인터럽트 라인 = 128개
+    (STM32F746의 실제 사용 IRQ는 98개. 나머지 30개는 구현만 되어 있고 미배선)
+    NVIC->IP[0]에 0xFF 기록 후 되읽기 = 0xF0 → 구현된 우선순위 비트 = 4개 (16단계)
+    ; 상위 4비트만 하드웨어에 존재하고 하위 4비트는 0으로 읽힌다
+AIRCR            @ 0xE000ED0C = 0xFA050300
+    PRIGROUP=3 → 선점 우선순위 4비트 / 서브 우선순위 0비트
+VTOR             @ 0xE000ED08 = 0x20026E00  ; 현재 벡터 테이블 위치
+
+================================================================
+== 2. 캐시 (CLIDR / CTR / CCSIDR)
+================================================================
+CLIDR            @ 0xE000ED78 = 0x09000003
+    Ctype1=3 (I/D 분리 캐시 (하버드))  LoUIS=0  LoC=1  LoUU=1
+    ; LoC=1 → 코히런시 유지가 필요한 캐시 레벨은 L1뿐 (L2 없음)
+CTR              @ 0xE000ED7C = 0x8303C003
+    IminLine=32 bytes, DminLine=32 bytes  ; 캐시 유지 명령의 최소 단위
+    ERG=4 bytes (배타적 예약 입도), CWG=32 bytes (쓰기 병합 입도)
+    L1Ip=3  ; 0b11 = PIPT (물리 인덱스/물리 태그, 앨리어싱 없음)
+
+  [D-cache]  (CSSELR=0x00000000)
+CCSIDR           @ 0xE000ED80 = 0xF003E019
+    NumSets=32  Associativity=4-way  LineSize=32 bytes
+    → 용량 = 32 x 4 x 32 = 4096 bytes (4 KB)
+    지원 정책: WT=예 WB=예 ReadAlloc=예 WriteAlloc=예
+    ; 한 way = 1024 bytes, 인덱스 비트 32개 → 같은 세트로 충돌하는 주소 간격 1024 bytes
+
+  [I-cache]  (CSSELR=0x00000001)
+CCSIDR           @ 0xE000ED80 = 0xF007E009
+    NumSets=64  Associativity=2-way  LineSize=32 bytes
+    → 용량 = 64 x 2 x 32 = 4096 bytes (4 KB)
+    지원 정책: WT=예 WB=예 ReadAlloc=예 WriteAlloc=예
+    ; 한 way = 2048 bytes, 인덱스 비트 64개 → 같은 세트로 충돌하는 주소 간격 2048 bytes
+
+  [캐시 제어 레지스터 현재 상태]
+CCR              @ 0xE000ED14 = 0x00040200
+    IC(I-cache)=OFF  DC(D-cache)=OFF  BP(분기예측)=ON
+    STKALIGN=ON DIV_0_TRP=OFF UNALIGN_TRP=OFF USERSETMPEND=OFF NONBASETHRDENA=OFF
+    ; 이 값은 probe_run_registers() 시점, 즉 벤치마크가 캐시를 만지기 전의 상태다
+CACR             @ 0xE000EF9C = 0x00000002
+    SIWT=OFF (공유 영역도 write-back 허용)  ECCEN=ON  FORCEWT=OFF
+    ; ECCEN=0이면 TCM/캐시 ECC 비활성. STM32F7은 ECC 로직 자체가 없어 항상 0으로 읽힌다
+ACTLR            @ 0xE000E008 = 0x00000000
+    DISFOLD(bit0)=OFF  ; IT 폴딩 비활성화
+    FPEXCODIS(bit2)=OFF  ; FPU 예외 출력 비활성화
+    DISRAMODE(bit3)=OFF  ; write-through 동적 read-allocate 비활성화
+    DISITMATBFLUSH(bit4)=OFF ; ITM/DWT ATB 플러시 비활성화
+    나머지 비트[31:5]=0x00000000  ; 이중발행 억제(DISDI 계열)는 코어 리비전 의존 필드다
+    ; DISDEFWBUF/DISMCYCINT는 Cortex-M3/M4의 ACTLR 비트이고 Cortex-M7에는 없다
+
+================================================================
+== 3. TCM / 버스 인터페이스
+================================================================
+ITCMCR           @ 0xE000EF90 = 0x00000073
+    EN=ON RMW=ON RETEN=OFF SZ=0xE → 8192 KB
+DTCMCR           @ 0xE000EF94 = 0x0000003B
+    EN=ON RMW=ON RETEN=OFF SZ=0x7 → 64 KB
+    ; SZ는 코어가 TCM 인터페이스에 할당한 주소공간 크기이지, 실제로 붙어 있는
+    ; RAM 용량이 아니다. ST가 그 주소공간의 일부에만 SRAM을 물려 놓았다면
+    ; 위 해석과 실제 크기가 어긋난다. 실제 크기는 probe_mem.c가 별도로 실측한다.
+    ; (RM0385 기준 기대값: ITCM 16KB, DTCM 64KB)
+    RMW=1은 32비트 미만 쓰기를 read-modify-write로 처리한다는 뜻이다.
+AHBPCR           @ 0xE000EF98 = 0x00000009
+    EN(AHBP 슬레이브 포트)=ON  SZ=4 → 512MB
+    ; AHBP는 페리페럴 전용 포트다. 켜져 있으면 페리페럴 접근이 AXIM을 거치지 않아
+    ; 코드 페치와 경쟁하지 않는다 (STM32F7에서는 0x40000000~ 접근 경로)
+AHBSCR           @ 0xE000EFA0 = 0x00000800
+    CTL=0 (AHBS 중재: 기본(코어 우선))  TPRI=0  INITCOUNT=1
+ABFSR            @ 0xE000EFA8 = 0x00000000
+    ITCM=0 DTCM=0 AHBP=0 AXIM=0 EPPB=0  AXIMTYPE=0
+    → 부팅 이후 비동기 버스 폴트 없음
+
+================================================================
+== 4. FPU (MVFR0/1/2 / CPACR / FPCCR)
+================================================================
+MVFR0            @ 0xE000EF40 = 0x10110021
+MVFR1            @ 0xE000EF44 = 0x11000011
+MVFR2            @ 0xE000EF48 = 0x00000040
+    MVFR0 A_SIMD=1 → 레지스터 뱅크 16개 x 64비트 (= s0~s31, d0~d15)
+    단정밀도(FP32) 하드웨어: 지원 (SP=2)
+    배정밀도(FP64) 하드웨어: **없음** (DP=0)
+    ; => 이 칩은 FPv5-SP-D16 이다. double 연산은 전부 소프트웨어(aeabi_dxxx)로
+    ;    처리되므로 float(32비트)만 써야 FPU 이득을 본다.
+    나눗셈(VDIV)=하드웨어  제곱근(VSQRT)=하드웨어  FP예외 트래핑=없음
+    반올림 모드=모든 IEEE 모드 지원  Short vectors=없음(정상)
+    MVFR1 FMA(VFMA/VFMS 융합 곱셈누산)=없음
+    반정밀도(FP16) 변환=없음 (FP_HP=0)  ; 연산이 아니라 변환(VCVTB/VCVTT)만이다
+    FtZ(플러시 투 제로) 모드=1, Default NaN 모드=1
+    MVFR2 VFP_Misc=4  ; 0 이외면 추가 제어(부동소수 예외 등) 구현
+CPACR            @ 0xE000ED88 = 0x00F00000
+    CP10=3 CP11=3 → 특권/비특권 모두 FPU 접근 허용 (SystemInit이 켰다)
+FPCCR            @ 0xE000EF34 = 0xC0000058
+    ASPEN=ON LSPEN=ON  ; 자동/지연 FPU 컨텍스트 스택
+    LSPACT=OFF USER=0 THREAD=1 HFRDY=1 MMRDY=0 BFRDY=1 MONRDY=0
+    ; LSPEN=1이면 예외 진입 시 FPU 레지스터 저장을 실제 사용 시점까지 미룬다
+FPCAR            @ 0xE000EF38 = 0x2000FE68  ; 마지막 지연 스택 프레임 주소
+FPDSCR           @ 0xE000EF3C = 0x00000000
+    기본 FPSCR: RMode=0 AHP=0 DN=0 FZ=0
+
+================================================================
+== 5. MPU
+================================================================
+MPU_TYPE         @ 0xE000ED90 = 0x00000800
+    DREGION=8개, IREGION=0개, SEPARATE=0
+    → 데이터/명령 통합 MPU 리전 8개
+MPU_CTRL         @ 0xE000ED94 = 0x00000000
+    ENABLE=OFF HFNMIENA=OFF PRIVDEFENA=OFF
+    ; MPU가 꺼져 있다 → 메모리 속성은 기본 메모리 맵(default map)을 따른다.
+    ;   0x20000000~0x3FFFFFFF SRAM = Normal WB-WA, 0x40000000~ = Device.
+    ;   즉 SDRAM(0xC0000000)은 기본맵에서 Normal 비공유 캐시 가능 영역이다.
+
+  리전  RBAR         RASR         베이스      크기      권한/속성
+   0    0x00000000   0x00000000   (비활성)
+   1    0x00000001   0x00000000   (비활성)
+   2    0x00000002   0x00000000   (비활성)
+   3    0x00000003   0x00000000   (비활성)
+   4    0x00000004   0x00000000   (비활성)
+   5    0x00000005   0x00000000   (비활성)
+   6    0x00000006   0x00000000   (비활성)
+   7    0x00000007   0x00000000   (비활성)
+
+================================================================
+== 6. 디버그 유닛 / CoreSight ROM 테이블
+================================================================
+DEMCR            @ 0xE000EDFC = 0x01000000
+    TRCENA=ON  ; probe_time_init()이 켰다. DWT/ITM/TPIU 전원 게이트 역할
+DHCSR            @ 0xE000EDF0 = 0x01010000
+    C_DEBUGEN=OFF S_HALT=OFF  ; 디버거(ST-LINK) 연결 여부의 근거
+DWT_CTRL         @ 0xE0001000 = 0x40000001
+    NUMCOMP=4개 (데이터 워치포인트/비교기)
+    NOTRCPKT=0 NOEXTTRIG=0 NOCYCCNT=0 NOPRFCNT=0
+    → 사이클 카운터 있음 (CYCCNT 사용 가능), 프로파일 카운터(CPI/EXC/SLEEP/LSU/FOLD) 있음
+    CYCCNTENA=ON, 현재 CYCCNT=0x0C036FF3
+FP_CTRL          @ 0xE0002000 = 0x10000080
+    NUM_CODE=8개 (명령 브레이크포인트), NUM_LIT=0개 (리터럴 비교기)
+    ENABLE=OFF KEY=0 REV=1  ; REV=1이면 FPBv2 (전체 주소 비교)
+FP_REMAP         @ 0xE0002004 = 0x00000000
+
+  [CoreSight ROM table @ 0xE00FF000]
+    entry[0] = 0xFFF0F003 → base 0xE000E000, present=1
+    0xE000E000  PIDR=000BB00C/00000004  CIDR=B105E00D
+      part=0x00C (SCS (Cortex-M4/M7)) rev=0  JEP106 cont=4 code=0x3B (ARM Limited)
+      CID 프리앰블=정상  class=0xE (기타)
+    entry[1] = 0xFFF02003 → base 0xE0001000, present=1
+    0xE0001000  PIDR=000BB002/00000004  CIDR=B105E00D
+      part=0x002 (DWT) rev=0  JEP106 cont=4 code=0x3B (ARM Limited)
+      CID 프리앰블=정상  class=0xE (기타)
+    entry[2] = 0xFFF03003 → base 0xE0002000, present=1
+    0xE0002000  PIDR=000BB00E/00000004  CIDR=B105E00D
+      part=0x00E (FPB (Cortex-M7)) rev=0  JEP106 cont=4 code=0x3B (ARM Limited)
+      CID 프리앰블=정상  class=0xE (기타)
+    entry[3] = 0xFFF01003 → base 0xE0000000, present=1
+    0xE0000000  PIDR=000BB001/00000004  CIDR=B105E00D
+      part=0x001 (ITM) rev=0  JEP106 cont=4 code=0x3B (ARM Limited)
+      CID 프리앰블=정상  class=0xE (기타)
+    entry[4] = 0xFFF41002 → base 0xE0040000, present=0
+    0xE0040000  PIDR=000BB9A9/00000004  CIDR=B105900D
+      part=0x9A9 (TPIU (Cortex-M7)) rev=0  JEP106 cont=4 code=0x3B (ARM Limited)
+      CID 프리앰블=정상  class=0x9 (CoreSight 컴포넌트)
+    entry[5] = 0xFFF42002 → base 0xE0041000, present=0
+    0xE0041000  PIDR=000BB975/00000004  CIDR=B105900D
+      part=0x975 (ETM (Cortex-M7)) rev=0  JEP106 cont=4 code=0x3B (ARM Limited)
+      CID 프리앰블=정상  class=0x9 (CoreSight 컴포넌트)
+    entry[6] = 0x00000000 → 테이블 종료
+
+  [TPIU/ETM 재확인 — TRCENA가 켜진 상태에서]
+    DEMCR.TRCENA=ON 인 지금 다시 읽는다.
+    ROM entry[4] (base 0xE0040000, TPIU) = 0xFFF41002 → present=0
+    ROM entry[5] (base 0xE0041000, ETM) = 0xFFF42002 → present=0
+    TPIU(0xE0040000) PIDR0 직접 읽기: 성공 → 하드웨어 존재
+    ETM (0xE0041000) PIDR0 직접 읽기: 성공 → 하드웨어 존재
+    ; ROM 테이블의 present=0 은 "이 ROM에서 광고하지 않음"이라는 뜻이다.
+    ; 위 직접 읽기가 성공하면 유닛은 있는데 ROM이 광고하지 않는 것이고,
+    ; BusFault면 TRCENA를 켠 뒤에도 접근 불가 = 이 실리콘에 없거나 완전 차단이다.
+DBGMCU_IDCODE    @ 0xE0042000 = 0x10016449
+    DEV_ID=0x449 (STM32F74x/F75x)  REV_ID=0x1001 (rev Z)
+DBGMCU_CR        @ 0xE0042004 = 0x00000000  ; DBG_SLEEP/STOP/STANDBY + TRACE 설정
+    DBG_SLEEP=0 DBG_STOP=0 DBG_STANDBY=0 TRACE_IOEN=0 TRACE_MODE=0
+
+================================================================
+== 7. 팩토리 프로그램 영역 (읽기 전용)
+================================================================
+UID[31:0]        @ 0x1FF0F420 = 0x00340033
+UID[63:32]       @ 0x1FF0F424 = 0x54435008
+UID[95:64]       @ 0x1FF0F428 = 0x20353036
+    96비트 고유 ID = 203530365443500800340033
+    ; UID[31:0]의 하위 16비트는 웨이퍼 X좌표, 상위 16비트는 Y좌표,
+    ; UID[39:32]는 웨이퍼 번호, 나머지는 로트 번호(ASCII)다.
+    웨이퍼 X=51 Y=52, 웨이퍼번호=8, LOT='PCT605 '
+FLASH_SIZE       @ 0x1FF0F442 = 0x0400  ; 1024 KB (1 MB)
+PACKAGE          @ 0x1FF07BF0 = 0xFFFFFFFF
+    → 전 비트가 1이다. 이 다이에는 패키지 데이터가 프로그램되어 있지 않다.
+      (ST-LINK 실측과 동일) 패키지 종류를 이 레지스터로는 판정할 수 없다.
+PACKAGE(hdr)     @ 0x1FF0F7E0 = 0x038DFC72  ; CMSIS 헤더의 PACKAGE_BASE. 위 주소와 다른 값이면 둘 중 하나는 미프로그램
+VREFINT_CAL      @ 0x1FF0F44A = 0x05D4  ; 1492 LSB @3.3V, 30도
+TS_CAL1          @ 0x1FF0F44C = 0x03AE  ; 942 LSB @30도
+TS_CAL2          @ 0x1FF0F44E = 0x04AB  ; 1195 LSB @110도
+    기울기 = 80도 / 253 LSB = 0.316 도/LSB
+    ; 계산식: T = 80/(TS_CAL2-TS_CAL1) * (TS_DATA-TS_CAL1) + 30
+
+================================================================
+== 8. 클럭 / 전원 / 플래시
+================================================================
+RCC_CR           @ 0x40023800 = 0x03038283
+    HSION=1 HSIRDY=1 HSEON=1 HSERDY=1 HSEBYP=0 CSSON=0
+    PLLON=1 PLLRDY=1 PLLI2SON=0 PLLI2SRDY=0 PLLSAION=0 PLLSAIRDY=0
+    HSITRIM=16 HSICAL=130
+RCC_PLLCFGR      @ 0x40023804 = 0x09406419
+    PLLSRC=1 (HSE, 25000000 Hz 가정)  PLLM=25 PLLN=400 PLLP=2 PLLQ=9
+    VCO 입력 = 25000000 / 25 = 1000000 Hz (권장 1~2MHz)
+    VCO 출력 = 1000000 x 400 = 400000000 Hz
+    PLL P 출력(SYSCLK 후보) = 400000000 / 2 = 200000000 Hz
+    PLL Q 출력(48MHz 계열) = 400000000 / 9 = 44444444 Hz
+RCC_CFGR         @ 0x40023808 = 0x0000940A
+    SW=2 SWS=2 (PLL가 SYSCLK 소스)  HPRE=/1  PPRE1=/4  PPRE2=/2
+    RTCPRE=/0  MCO1=0(/1)  MCO2=0(/1)
+
+  [레지스터로 역산한 클럭 vs 소프트웨어가 믿는 값]
+    SYSCLK  역산 200000000 Hz   소프트웨어 200000000 Hz   일치
+    HCLK    역산 200000000 Hz   소프트웨어 200000000 Hz   일치
+    PCLK1   역산  50000000 Hz   소프트웨어  50000000 Hz   일치
+    PCLK2   역산 100000000 Hz   소프트웨어 100000000 Hz   일치
+    SystemCoreClock 전역변수 = 200000000 Hz
+    ; 역산은 HSE=25MHz(보드 크리스탈)를 가정한다. 이 가정이 틀리면 전부 비례해 틀린다.
+    ; probe_time.c의 사이클→시간 환산이 이 값에 의존하므로 불일치는 치명적이다.
+RCC_DCKCFGR1     @ 0x4002388C = 0x00000000
+    PLLI2SDIVQ=/1 PLLSAIDIVQ=/1 PLLSAIDIVR=/1 SAI1SEL=0 SAI2SEL=0 TIMPRE=0
+RCC_DCKCFGR2     @ 0x40023890 = 0x00000000
+    USART1SEL=0 USART2SEL=0 USART3SEL=0 UART4SEL=0 UART5SEL=0 USART6SEL=0
+    I2C1SEL=0 I2C2SEL=0 I2C3SEL=0 I2C4SEL=0 LPTIM1SEL=0 CK48MSEL=0 SDMMC1SEL=0
+    ; USART1SEL=0 → PCLK2 사용. probe_io.c가 BRR을 PCLK2 기준으로 잡는 근거다
+RCC_BDCR         @ 0x40023870 = 0x00000003
+    LSEON=1 LSERDY=1 LSEBYP=0 LSEDRV=0 RTCSEL=0 RTCEN=0 BDRST=0
+RCC_CSR          @ 0x40023874 = 0x0E000000
+    LSION=0 LSIRDY=0
+  [이번 부팅의 리셋 원인]
+    LPWRRSTF=0 (저전력 리셋)   WWDGRSTF=0 (윈도우 워치독)
+    IWDGRSTF=0 (독립 워치독)   SFTRSTF=0 (소프트웨어 리셋)
+    PORRSTF=1 (POR/PDR)        PINRSTF=1 (NRST 핀)
+    BORRSTF=1 (브라운아웃)
+    → 가장 유력한 원인: NRST 핀 (ST-LINK 하드리셋 또는 리셋 버튼)
+    ; PORRSTF와 PINRSTF가 함께 서면 전원 인가 직후이며, 플래그는 RMVF로만 지워진다
+FLASH_ACR        @ 0x40023C00 = 0x00000006
+    LATENCY=6 wait state, PRFTEN=OFF, ARTEN=OFF, ARTRST=0
+    ; 6 WS는 200 MHz에서 VOS Scale1 기준 요구값이다. ART가 꺼지면 플래시
+    ; 실행 성능이 크게 떨어진다 (probe_cpu.c가 ART on/off를 비교 측정한다)
+FLASH_OPTCR      @ 0x40023C14 = 0xC0FFAAFD
+    RDP=0xAA → Level 0 (보호 없음)
+    BOR_LEV=3 → BOR 꺼짐 (VBOR0, 1.8V)
+    WWDG_SW=1 (소프트웨어 제어)  IWDG_SW=1 (소프트웨어 제어)
+    nRST_STOP=1 (STOP 진입 시 리셋 안 함)  nRST_STDBY=1 (STANDBY 진입 시 리셋 안 함)
+    IWDG_STDBY=1 IWDG_STOP=1
+    nWRP=0xFF → 쓰기보호 섹터: 없음 (전 섹터 쓰기 가능)
+FLASH_OPTCR1     @ 0x40023C18 = 0x00400080
+    BOOT_ADD0=0x0080 → 0x00200000, BOOT_ADD1=0x0040 → 0x00100000
+    ; BOOT_ADDx는 상위 16비트만 저장한다 (실제 주소 = 값 x 0x4000)
+PWR_CR1          @ 0x40007000 = 0x0003C000
+    VOS=3 → Scale 1 (최대 216MHz, 최고 전압)
+    ODEN=ON ODSWEN=ON UDEN=0 LPDS=0 PDDS=0 FPDS=0 DBP=0
+PWR_CSR1         @ 0x40007004 = 0x00034000
+    VOSRDY=예 ODRDY=예 ODSWRDY=예 UDRDY=0
+    PVDO=0 BRR=0 BRE=0 SBF=0 WUIF=0
+    ; ODEN/ODSWEN이 모두 1이고 ODSWRDY=1이어야 200MHz 이상에서 동작한다.
+    ; over-drive는 코어 전압을 올려 최대 클럭을 얻는 대신 소비전류가 늘어난다.
+
+================================================================
+== 9. 페리페럴 존재 실측 (RCC 인에이블 되읽기 + BusFault 프로빙)
+================================================================
+방법: (1) RCC ENR 비트에 1을 쓰고 되읽는다(없는 페리페럴은 0으로 남는다).
+      (2) 클럭을 켠 채 베이스 주소를 ldr.w로 읽는다(BusFault=슬레이브 없음).
+      인터럽트를 끄고 읽으며, 전용 핸들러가 PC를 4바이트 전진시켜 복귀한다.
+
+  peripheral    base         RCC-bit   base-read   value
+  ------------  -----------  --------  ----------  ----------
+  JPEG          0x50051000  CLEAR0    BUSFAULT    -
+  CRYP          0x50060000  KEEP      OK          0x00000000
+  HASH          0x50060400  KEEP      OK          0x00000000
+  RNG           0x50060800  KEEP      OK          0x00000000
+  DCMI          0x50050000  KEEP      OK          0x00000000
+  USB_OTG_FS    0x50000000  KEEP      OK          0x03010000
+  USB_OTG_HS    0x40040000  KEEP      OK          0x03010000
+  ETH_MAC       0x40028000  KEEP      OK          0x00008000
+  DMA2D         0x4002B000  KEEP      OK          0x00000000
+  DMA1          0x40026000  KEEP      OK          0x00000000
+  DMA2          0x40026400  KEEP      OK          0x00000000
+  CRC           0x40023000  KEEP      OK          0xFFFFFFFF
+  FMC           0xA0000000  KEEP      OK          0x000030DB
+  QUADSPI       0xA0001000  KEEP      OK          0x01400311
+  DFSDM1(x)     0x40017400  N/A       OK          0x00000000
+  DSI(x)        0x40016C00  N/A       OK          0x00000000
+  TIM1          0x40010000  KEEP      OK          0x00000000
+  TIM8          0x40010400  KEEP      OK          0x00000000
+  USART1        0x40011000  KEEP      OK          0x00000009
+  USART6        0x40011400  KEEP      OK          0x00000000
+  ADC1          0x40012000  KEEP      OK          0x00000000
+  ADC2          0x40012100  KEEP      OK          0x00000000
+  ADC3          0x40012200  KEEP      OK          0x00000000
+  SDMMC1        0x40012C00  KEEP      OK          0x00000000
+  SPI1          0x40013000  KEEP      OK          0x00000000
+  SPI4          0x40013400  KEEP      OK          0x00000000
+  TIM9          0x40014000  KEEP      OK          0x00000000
+  TIM10         0x40014400  KEEP      OK          0x00000000
+  TIM11         0x40014800  KEEP      OK          0x00000000
+  SPI5          0x40015000  KEEP      OK          0x00000000
+  SPI6          0x40015400  KEEP      OK          0x00000000
+  SAI1          0x40015800  KEEP      OK          0x00000000
+  SAI2          0x40015C00  KEEP      OK          0x00000000
+  LTDC          0x40016800  KEEP      OK          0x00000000
+  TIM2          0x40000000  KEEP      OK          0x00000000
+  TIM3          0x40000400  KEEP      OK          0x00000000
+  TIM4          0x40000800  KEEP      OK          0x00000000
+  TIM5          0x40000C00  KEEP      OK          0x00000000
+  TIM6          0x40001000  KEEP      OK          0x00000000
+  TIM7          0x40001400  KEEP      OK          0x00000000
+  TIM12         0x40001800  KEEP      OK          0x00000000
+  TIM13         0x40001C00  KEEP      OK          0x00000000
+  TIM14         0x40002000  KEEP      OK          0x00000000
+  LPTIM1        0x40002400  KEEP      OK          0x00000000
+  SPI2          0x40003800  KEEP      OK          0x00000000
+  SPI3          0x40003C00  KEEP      OK          0x00000000
+  SPDIFRX       0x40004000  KEEP      OK          0x00000000
+  USART2        0x40004400  KEEP      OK          0x00000000
+  USART3        0x40004800  KEEP      OK          0x00000000
+  UART4         0x40004C00  KEEP      OK          0x00000000
+  UART5         0x40005000  KEEP      OK          0x00000000
+  I2C1          0x40005400  KEEP      OK          0x00000000
+  I2C2          0x40005800  KEEP      OK          0x00000000
+  I2C3          0x40005C00  KEEP      OK          0x00000000
+  I2C4          0x40006000  KEEP      OK          0x00000000
+  CAN1          0x40006400  KEEP      OK          0x00010002
+  CAN2          0x40006800  KEEP      OK          0x00010002
+  HDMI_CEC      0x40006C00  KEEP      OK          0x00000000
+  DAC           0x40007400  KEEP      OK          0x00000000
+  UART7         0x40007800  KEEP      OK          0x00000000
+  UART8         0x40007C00  KEEP      OK          0x00000000
+
+  이 표에서 시도한 읽기 61회 중 1회가 BusFault로 실패했다.
+  ; CLEAR0 + BUSFAULT가 함께 나오면 그 페리페럴은 이 다이에 없다고 확정할 수 있다.
+  ; KEEP + OK는 버스 응답이 있다는 뜻일 뿐, 기능 블록의 완전성까지 보증하지는 않는다.
+
+================================================================
+== 10. GPIO 현재 설정 (보드 배선의 실측 증거)
+================================================================
+  부팅 시점의 GPIO 클럭 인에이블 상태 (AHB1ENR[10:0]) = 0x1FF: A B C D E F G H I 
+  ; 클럭이 켜진 포트 = 이미 누군가(BSP/probe_io)가 쓰고 있는 포트다.
+  ; 레지스터를 읽기 위해 나머지 포트의 클럭도 잠시 켰다가 원래대로 되돌린다.
+
+  GPIOA MODER=0xA8080000 OTYPER=0x00000000 OSPEEDR=0x0C0C0000 PUPDR=0x64000000
+        AFR0 =0x00000000 AFR1  =0x00000070 IDR    =0x0000A026
+  GPIOB MODER=0x0000A2A0 OTYPER=0x00000000 OSPEEDR=0x0000F0F0 PUPDR=0x00005100
+        AFR0 =0x7A000900 AFR1  =0x00000000 IDR    =0x000003D0
+  GPIOC MODER=0x00000080 OTYPER=0x00000000 OSPEEDR=0x00000080 PUPDR=0x00000040
+        AFR0 =0x0000C000 AFR1  =0x00000000 IDR    =0x00000F0B
+  GPIOD MODER=0xAAAA000A OTYPER=0x00000000 OSPEEDR=0xAFEA000A PUPDR=0x50150005
+        AFR0 =0x000000CC AFR1  =0xCC999CCC IDR    =0x0000E7B7
+  GPIOE MODER=0xAAAA802A OTYPER=0x00000000 OSPEEDR=0xAAAA803A PUPDR=0x55554005
+        AFR0 =0xC00009CC AFR1  =0xCCCCCCCC IDR    =0x0000FF88
+  GPIOF MODER=0xAA800AAA OTYPER=0x00000000 OSPEEDR=0xAA800AAA PUPDR=0x55400555
+        AFR0 =0x00CCCCCC AFR1  =0xCCCCC000 IDR    =0x00000800
+  GPIOG MODER=0x80020A0A OTYPER=0x00000000 OSPEEDR=0x80020A0A PUPDR=0x40010505
+        AFR0 =0x00CC00CC AFR1  =0xC000000C IDR    =0x0000E100
+  GPIOH MODER=0x00000880 OTYPER=0x00000000 OSPEEDR=0x00000880 PUPDR=0x00000440
+        AFR0 =0x00C0C000 AFR1  =0x00000000 IDR    =0x000001A8
+  GPIOI MODER=0x00000004 OTYPER=0x00000000 OSPEEDR=0x0000000C PUPDR=0x00000000
+        AFR0 =0x00000000 AFR1  =0x00000000 IDR    =0x00002002
+  GPIOJ MODER=0x00000000 OTYPER=0x00000000 OSPEEDR=0x00000000 PUPDR=0x00000000
+        AFR0 =0x00000000 AFR1  =0x00000000 IDR    =0x00000000
+  GPIOK MODER=0x00000000 OTYPER=0x00000000 OSPEEDR=0x00000000 PUPDR=0x00000000
+        AFR0 =0x00000000 AFR1  =0x00000000 IDR    =0x00000008
+
+  [대체기능(AF)으로 설정된 핀 목록]
+    PA: 9=AF7 13=AF0 14=AF0 15=AF0 
+    PB: 2=AF9 3=AF0 4=AF0 6=AF10 7=AF7 
+    PC: 3=AF12 
+    PD: 0=AF12 1=AF12 8=AF12 9=AF12 10=AF12 11=AF9 12=AF9 13=AF9 14=AF12 15=AF12 
+    PE: 0=AF12 1=AF12 2=AF9 7=AF12 8=AF12 9=AF12 10=AF12 11=AF12 12=AF12 13=AF12 14=AF12 15=AF12 
+    PF: 0=AF12 1=AF12 2=AF12 3=AF12 4=AF12 5=AF12 11=AF12 12=AF12 13=AF12 14=AF12 15=AF12 
+    PG: 0=AF12 1=AF12 4=AF12 5=AF12 8=AF12 15=AF12 
+    PH: 3=AF12 5=AF12 
+    총 51개 핀이 대체기능으로 설정되어 있다.
+    ; 이 시점에는 USART1(PA9/PB7=AF7), SDRAM용 FMC(AF12), QSPI(AF9/AF10)가
+    ; 초기화된 뒤다. AF12 핀들이 FMC 데이터/주소 버스 = SDRAM 배선의 증거다.
+    ; 아날로그(MODER=11)나 입력(00)으로 남은 핀은 아직 아무도 안 쓰는 핀이다.
+
+================================================================
+== 11. 외부 메모리 컨트롤러 (FMC SDRAM / QUADSPI)
+================================================================
+
+  [SDRAM Bank1]
+FMC_SDCR1        @ 0xA0000140 = 0x00001954
+    NC=0 (컬럼 8비트)  NR=1 (로우 12비트)  MWID=1 (16비트 버스)
+    NB=1 (4뱅크)  CAS=2 (2사이클)  WP=0 (쓰기 허용)
+    SDCLK=2 (HCLK/2)  RBURST=1 (버스트 읽기 사용)  RPIPE=0 (0 HCLK 지연)
+    → 주소 공간 = 2^12행 x 2^8열 x 4뱅크 x 2바이트 = 8 MB
+    → SDRAM 클럭 = HCLK 200000000 Hz / 2 = 100.00 MHz
+    → 이론 최대 대역폭 = 200.00 MB/s (16비트 버스, SDR 1전송/사이클)
+FMC_SDTR1        @ 0xA0000148 = 0x01116361
+    TMRD=2 TXSR=7 TRAS=4 TRC=7 TWR=2 TRP=2 TRCD=2 (단위: 사이클)
+    ; 필드값 + 1이 실제 사이클 수다. TRC/TRP는 Bank1 설정만 유효하다.
+
+  [SDRAM Bank2]
+FMC_SDCR2        @ 0xA0000144 = 0x000002D0
+    NC=0 (컬럼 8비트)  NR=0 (로우 11비트)  MWID=1 (16비트 버스)
+    NB=1 (4뱅크)  CAS=1 (1사이클)  WP=1 (쓰기 금지)
+    SDCLK=0 (클럭 정지)  RBURST=0 (미사용)  RPIPE=0 (0 HCLK 지연)
+    → 주소 공간 = 2^11행 x 2^8열 x 4뱅크 x 2바이트 = 4 MB
+FMC_SDTR2        @ 0xA000014C = 0x0FFFFFFF
+    TMRD=16 TXSR=16 TRAS=16 TRC=16 TWR=16 TRP=16 TRCD=16 (단위: 사이클)
+    ; 필드값 + 1이 실제 사이클 수다. TRC/TRP는 Bank1 설정만 유효하다.
+FMC_SDRTR        @ 0xA0000154 = 0x00000C06
+    COUNT=1539  CRE=0  REIE=0
+    → 리프레시 주기 = (1539+1) SDCLK / 100 MHz = 15.400 us
+    ; 8192행 전체를 126.15 ms마다 한 바퀴 (SDRAM 규격은 보통 64ms 이내)
+FMC_SDSR         @ 0xA0000158 = 0x00000000
+    RE(리프레시 에러)=0  MODES1=0  MODES2=0  BUSY=0
+    ; MODESx: 00=정상, 01=셀프리프레시, 10=파워다운
+
+  [QUADSPI]
+QUADSPI_CR       @ 0xA0001000 = 0x01400311
+    EN=ON ABORT=0 DMAEN=0 SSHIFT=1 DFM=0 FSEL=0 FTHRES=3 APMS=1 PMM=0
+    PRESCALER=1 → QSPI 클럭 = HCLK / 2 = 100.00 MHz
+    ; SSHIFT=1 (샘플 시프트 사용) — 고속에서 데이터 홀드 확보용
+QUADSPI_DCR      @ 0xA0001004 = 0x00170500
+    FSIZE=23 → 플래시 용량 = 2^24 바이트 = 16 MB, CSHT=5 (칩셀렉트 하이 6사이클), CKMODE=0
+QUADSPI_CCR      @ 0xA0001014 = 0x0F282DEB
+    INSTRUCTION=0xEB  IMODE=1선 ADMODE=4선 ABMODE=없음 DMODE=4선
+    ADSIZE=2 (3바이트 주소)  DCYC=10 더미사이클  FMODE=3 (메모리맵 모드)  DDRM=0 SIOO=0
+QUADSPI_SR       @ 0xA0001008 = 0x00000000
+    BUSY=0 FLEVEL=0
+    ; FMODE=11(메모리맵)이면 0x90000000에서 직접 코드/데이터를 읽을 수 있다.
+    ; 그때 실효 대역폭은 (QSPI클럭 x 선 수 / 8)이 상한이며, 더미 사이클이 지연을 만든다.
+
+================================================================
+== 레지스터 덤프 종료
+================================================================
+BusFault 프로빙 총 156회 시도, 1회 폴트. 마지막 BFSR=0x82
+VTOR을 0x08000000로 복원했고 SHCSR도 원상복구했다.
+
+================================================================
+== 칩 내부 아날로그 실측 (이 개체 고유값)
+================================================================
+팩토리 캘리브레이션 값:
+  VREFINT_CAL @0x1FF0F44A = 1492  (3.3V, 30'C 에서 측정된 VREFINT ADC 코드)
+  TS_CAL1     @0x1FF0F44C = 942  (30'C)
+  TS_CAL2     @0x1FF0F44E = 1195  (110'C)
+
+VREFINT 측정 코드 = 1486 (12비트, 64회 평균)
+→ VDDA = 3.313 V   ; 이 보드에 지금 실제로 걸린 아날로그 공급 전압
+
+온도센서 측정 코드 = 968 (12비트, 64회 평균)
+→ 다이 온도 = 39.16 'C  (VDDA 보정 후 코드 971)
+   공식: T = 80/(TS_CAL2-TS_CAL1) * (TS_DATA*VDDA/3.3 - TS_CAL1) + 30
+
+VBAT 측정 코드 = 1021 → VBAT = 3.303 V (내부 1/4 분압 보정 후)
+   주: 이 보드에 백업 배터리가 없으면 VBAT은 VDD에 묶여 있다.
+
+================================================================
+== 저속 발진기 실측 (LSI / LSE)
+================================================================
+LSI: LSIRDY=1
+→ LSI 실측 = 26616 Hz  (공칭 32000 Hz, TIM5 타이머클럭 100000000 Hz 기준)
+   공칭 대비 편차 -16.8 %  ; RC 발진기라 개체·온도별로 크게 흔들린다
+
+LSE: 시도 전 LSEON=1, 기동 후 LSERDY=1 (BDCR=0x00000003)
+→ LSE 실측 = 32765 Hz (공칭 32768 Hz) ; 32.768kHz 크리스탈이 실장되어 있다
+
+HSE: 현재 HSEON=1 HSERDY=1 HSEBYP=0
+   HSEBYP=0 이면 크리스탈 발진 모드, 1이면 외부 클럭 입력 모드다.
+   주: SYSCLK이 HSE 기반 PLL로 돌고 있으므로 HSE를 껐다 켜는 실험은 하지 않는다.
+
+================================================================
+== I2C 버스 스캔 (보드에 실장된 칩 실측)
+================================================================
+각 주소에 START+주소를 보내고 ACK가 돌아오는지로 판정한다.
+주소는 7비트/8비트 표기를 함께 적는다 (8비트 = 7비트 << 1).
+
+--- I2C3 (PH7=SCL, PH8=SDA, AF4 — 오디오 코덱·터치 컨트롤러 계열) ---
+  응답: 7비트 0x1A (8비트 0x34)  → WM8994 오디오 코덱 (AUDIO_I2C_ADDRESS)
+  응답: 7비트 0x38 (8비트 0x70)  → FT5336 정전식 터치 컨트롤러 (TS_I2C_ADDRESS)
+  총 2개 장치가 응답했다.
+  BSP 헤더에 정의된 주소별 응답 여부:
+    0x34 응답 WM8994 오디오 코덱 (AUDIO_I2C_ADDRESS)
+    0x70 응답 FT5336 정전식 터치 컨트롤러 (TS_I2C_ADDRESS)
+    0x60 무응답 카메라 모듈 (CAMERA_I2C_ADDRESS, 보통 미장착)
+    0xA0 무응답 EEPROM A01 (EEPROM_I2C_ADDRESS_A01)
+    0xA6 무응답 EEPROM A02 (EEPROM_I2C_ADDRESS_A02)
+
+--- I2C1 (PB8=SCL, PB9=SDA, AF4 — Arduino 확장 커넥터) ---
+  응답한 장치 없음.
+  BSP 헤더에 정의된 주소별 응답 여부:
+    0x34 무응답 WM8994 오디오 코덱 (AUDIO_I2C_ADDRESS)
+    0x70 무응답 FT5336 정전식 터치 컨트롤러 (TS_I2C_ADDRESS)
+    0x60 무응답 카메라 모듈 (CAMERA_I2C_ADDRESS, 보통 미장착)
+    0xA0 무응답 EEPROM A01 (EEPROM_I2C_ADDRESS_A01)
+    0xA6 무응답 EEPROM A02 (EEPROM_I2C_ADDRESS_A02)
+
+터치 컨트롤러 식별 (I2C3 0x70):
+  reg 0xA8 = 0x51   ; 칩 ID (FT5336_CHIP_ID_REG) — FT5336이면 0x51
+  reg 0xA6 = 0x12   ; 펌웨어 버전 (FT5336_FIRMID_REG)
+  reg 0xA3 = 0x6F   ; 패널 ID
+  reg 0xAF = 0xEA   ; 릴리스 코드
+  reg 0xA1 = 0x99   ; 라이브러리 버전 하위 바이트
+  → 칩 ID가 0x51이므로 이 보드의 터치 컨트롤러는 FT5336으로 확정된다.
+
+================================================================
+== 보드 주변 부품 실측 (ID 레지스터·핀 상태)
+================================================================
+
+오디오 코덱 식별 (I2C3 0x34):
+  reg 0x0000 (칩 ID) = 0x8994
+  → 0x8994이므로 오디오 코덱은 WM8994로 확정된다.
+
+이더넷 PHY 식별 (MDIO: PA2=MDIO, PC1=MDC):
+  PHY 주소 0: ID1=0x0007 ID2=0xC131
+      OUI=0x0001F0  모델=0x13  리비전=0x1
+      → SMSC/Microchip LAN8742A 계열로 식별된다.
+      BMCR=0x3000 BMSR=0x7809  링크=down, 자동협상=미완료
+
+보드 입력 핀 상태:
+  PC13 (SD_DETECT) = 0  → microSD 카드 삽입됨
+  PI11 (사용자 버튼 B1) = 0  → 눌리지 않음
+  PI1  (LED1/LD1) 은 이 펌웨어가 진행 표시용으로 출력 구동 중
+  PI12 (LCD_DISP), PK3 (LCD 백라이트) 는 LCD를 초기화하지 않아 건드리지 않았다
+
+LTDC (LCD-TFT 컨트롤러) 현재 레지스터:
+  SSCR=0x00000000 BPCR=0x00000000 AWCR=0x00000000 TWCR=0x00000000 GCR=0x00000000
+  → 타이밍 레지스터가 비어 있다. 이 펌웨어는 LCD를 초기화하지 않는다.
+
+================================================================
+== 메모리 서브시스템 실측
+================================================================
+SYSCLK 200000000 Hz 기준. 반복 3회의 최솟값을 쓴다 (최솟값이 노이즈가 가장 적다).
+측정 하네스 오버헤드 29 cyc (함수 포인터 호출 + dsb/isb). 모든 수치에서 이미 뺐다.
+측정 중 인터럽트는 PRIMASK로 차단한다. 폴트 복구용 벡터테이블을 0x20001000에 임시 설치했다.
+버퍼 배치: ITCM 0x00001940(4 KB) DTCM 0x20001200(32 KB) SRAM1 0x20016C60(64 KB) SRAM2 0x2004C000(8 KB)
+외부/백업 메모리 실측 판정: SDRAM=사용 가능  QSPI=사용 가능  BKPSRAM=사용 가능
+
+================================================================
+== 1. 메모리 영역 실제 크기 실측 (aliasing / 폴트 경계 탐색)
+================================================================
+방법: 기준 주소에 표식을 쓰고 2^k 오프셋마다 다른 값을 써 본 뒤 기준을 다시 읽는다.
+      기준값이 바뀌면 되감김(WRAP), 쓴 값이 유지되지 않으면 없는 메모리(DEAD),
+      버스 폴트면 FAULT. 첫 실패 지점은 1KB 단위 이분 탐색으로 좁혔다.
+      읽기 전용 영역(FLASH/QSPI)은 쓰기 시험이 불가하므로 '읽어서 폴트가 나는
+      첫 주소'만으로 상한을 잡는다 (되감김은 이 방법으로 구분되지 않는다).
+      D-cache는 이 시험 동안 OFF다 (캐시가 되감김을 가려 버린다).
+
+region       base        DS크기     실측크기   판정   경계에서
+---------------------------------------------------------------
+ITCM         0x00001940     16 KB     16 KB  FAULT +0x00002800 에서 FAULT  [일치]
+DTCM         0x20001200     64 KB    320 KB  FAULT +0x0004F000 에서 FAULT  [불일치]
+SRAM1        0x20016C60    240 KB    256 KB  FAULT +0x00039400 에서 FAULT  [불일치]
+SRAM2        0x2004C000     16 KB     16 KB  FAULT +0x00004000 에서 FAULT  [일치]
+BKPSRAM      0x40024000      4 KB      4 KB  FAULT +0x00001000 에서 FAULT  [일치]
+SDRAM        0xC0000000   8192 KB   8192 KB  FAULT +0x00800000 에서 FAULT  [일치]
+FLASH_AXIM   0x08000000   1024 KB   1024 KB  FAULT +0x00100000 에서 FAULT  [일치]
+FLASH_ITCM   0x00200000   1024 KB   1024 KB  FAULT +0x00100000 에서 FAULT  [일치]
+QSPI         0x90000000  16384 KB  16384 KB  FAULT +0x01000000 에서 FAULT  [일치]
+
+주의: DTCM(0x20000000+64K) - SRAM1(0x20010000) - SRAM2(0x2004C000)은 주소가 연속이라
+      쓰기 시험만으로는 서로의 경계가 드러나지 않는다 (되감김이 없다). 각 영역의 실측값은
+      '그 주소에서 위로 얼마나 더 실재하는 메모리가 이어지는가'로 읽어야 하며,
+      물리적 경계는 아래 2번의 접근 지연 스캔이 갈라 준다.
+
+================================================================
+== 2. 접근 지연으로 본 물리 경계 (주소가 연속인 영역 구분)
+================================================================
+같은 주소 공간이라도 물리적으로 다른 메모리면 접근 비용이 다르다.
+아래는 D-cache OFF 상태에서 32B 간격 읽기의 접근당 사이클이다 (루프 오버헤드 포함).
+
+[0x20000000 대역] 4 KB 간격 접근 지연 스캔 (D-cache OFF, 32B 스트라이드 읽기)
+  0x20000000 - 0x2000FFFF :   5.16 cyc/접근
+  0x20010000 - 0x2004FFFF :  15.66 cyc/접근
+  0x20050000 - 0x20053FFF : 접근 불가 (버스 폴트)
+
+[0x00000000 대역] 1 KB 간격 접근 지연 스캔 (D-cache OFF, 32B 스트라이드 읽기)
+  0x00000000 - 0x00003FFF :   5.16 cyc/접근
+  0x00004000 - 0x00005FFF : 접근 불가 (버스 폴트)
+
+참고: 스트라이드 루프 자체의 오버헤드는 2.00 cyc/회 다 (위 값에 포함되어 있다).
+
+================================================================
+== 3. 순차 대역폭 (D-cache ON / write-back, 정상 상태)
+================================================================
+read32 = LDR x8 언롤, read64 = LDRD x4, readLDM = LDM 8레지스터 x2,
+write32 = STR x8, write64 = STRD x4, writeSTM = STM 8레지스터 x2,
+copyLDM = LDM/STM 8레지스터 (memcpy 상당). 전부 인라인 어셈블리다.
+워킹셋은 D-cache(4KB)보다 크게 잡되, 작은 영역은 영역 크기에 맞췄다.
+
+[ITCM] 워킹셋 4 KB
+  read32      219.86 MB/s     1.10 B/cyc
+  read64      221.28 MB/s     1.11 B/cyc
+  readLDM     459.96 MB/s     2.30 B/cyc
+  write32     211.84 MB/s     1.06 B/cyc
+  write64     227.68 MB/s     1.14 B/cyc
+  writeSTM    470.80 MB/s     2.35 B/cyc
+  copyLDM     470.26 MB/s     2.35 B/cyc  (읽기+쓰기 합산)
+[DTCM] 워킹셋 32 KB
+  read32      220.58 MB/s     1.10 B/cyc
+  read64      220.76 MB/s     1.10 B/cyc
+  readLDM     457.49 MB/s     2.29 B/cyc
+  write32     213.14 MB/s     1.07 B/cyc
+  write64     228.45 MB/s     1.14 B/cyc
+  writeSTM    473.66 MB/s     2.37 B/cyc
+  copyLDM     473.59 MB/s     2.37 B/cyc  (읽기+쓰기 합산)
+[SRAM1] 워킹셋 64 KB
+  read32      206.91 MB/s     1.03 B/cyc
+  read64      206.86 MB/s     1.03 B/cyc
+  readLDM     389.74 MB/s     1.95 B/cyc
+  write32     213.20 MB/s     1.07 B/cyc
+  write64     228.46 MB/s     1.14 B/cyc
+  writeSTM    473.61 MB/s     2.37 B/cyc
+  copyLDM     429.11 MB/s     2.15 B/cyc  (읽기+쓰기 합산)
+[SRAM2] 워킹셋 8 KB
+  read32      204.97 MB/s     1.02 B/cyc
+  read64      206.11 MB/s     1.03 B/cyc
+  readLDM     399.51 MB/s     2.00 B/cyc
+  write32     212.28 MB/s     1.06 B/cyc
+  write64     227.74 MB/s     1.14 B/cyc
+  writeSTM    470.26 MB/s     2.35 B/cyc
+  copyLDM     466.24 MB/s     2.33 B/cyc  (읽기+쓰기 합산)
+[BKPSRAM] 워킹셋 4 KB
+  read32      140.49 MB/s     0.70 B/cyc
+  read64      138.72 MB/s     0.69 B/cyc
+  readLDM     143.36 MB/s     0.72 B/cyc
+  write32     211.84 MB/s     1.06 B/cyc
+  write64     227.68 MB/s     1.14 B/cyc
+  writeSTM    470.53 MB/s     2.35 B/cyc
+  copyLDM     224.13 MB/s     1.12 B/cyc  (읽기+쓰기 합산)
+[SDRAM] 워킹셋 64 KB
+  read32       60.25 MB/s     0.30 B/cyc
+  read64       59.56 MB/s     0.30 B/cyc
+  readLDM      60.76 MB/s     0.30 B/cyc
+  write32     194.55 MB/s     0.97 B/cyc
+  write64     194.55 MB/s     0.97 B/cyc
+  writeSTM    194.56 MB/s     0.97 B/cyc
+  copyLDM      81.46 MB/s     0.41 B/cyc  (읽기+쓰기 합산)
+[FLASH_AXIM] 워킹셋 64 KB
+  read32      189.47 MB/s     0.95 B/cyc
+  read64      189.59 MB/s     0.95 B/cyc
+  readLDM     339.59 MB/s     1.70 B/cyc
+[QSPI] 워킹셋 64 KB
+  read32       51.69 MB/s     0.26 B/cyc
+  read64       51.50 MB/s     0.26 B/cyc
+  readLDM      51.30 MB/s     0.26 B/cyc
+
+[영역 간 복사] LDM/STM 8레지스터, 32 KB 이동
+  SDRAM -> SRAM1      58.44 MB/s     0.29 B/cyc
+  SRAM1 -> SDRAM     194.69 MB/s     0.97 B/cyc
+  FLASH -> SRAM1     315.38 MB/s     1.58 B/cyc
+  SRAM1 -> DTCM      214.82 MB/s     1.07 B/cyc
+  DTCM  -> SRAM1     236.58 MB/s     1.18 B/cyc
+  DTCM  -> SRAM1     110.29 MB/s     0.55 B/cyc  (LDR/STR 32비트판)
+
+================================================================
+== 4. D-cache 상태별 비교 (콜드 상태: 매 측정 전 clean+invalidate)
+================================================================
+OFF = D-cache 끔, WB = write-back, WT = CACR.FORCEWT=1 강제 write-through.
+워킹셋: SRAM1 64 KB, SRAM2 8 KB, FLASH_AXIM 64 KB, SDRAM 64 KB
+
+대상.연산        OFF                        WB                         WT
+--------------------------------------------------------------------------------
+SRAM1      .read32     172.85 MB/s     0.86 B/cyc     206.32 MB/s     1.03 B/cyc     206.32 MB/s     1.03 B/cyc
+SRAM1      .write32    709.53 MB/s     3.55 B/cyc     708.95 MB/s     3.54 B/cyc     709.53 MB/s     3.55 B/cyc
+SRAM1      .copyLDM    672.23 MB/s     3.36 B/cyc     671.71 MB/s     3.36 B/cyc     671.71 MB/s     3.36 B/cyc
+SRAM2      .read32     155.38 MB/s     0.78 B/cyc     205.46 MB/s     1.03 B/cyc     205.46 MB/s     1.03 B/cyc
+SRAM2      .write32    698.67 MB/s     3.49 B/cyc     694.23 MB/s     3.47 B/cyc     694.23 MB/s     3.47 B/cyc
+SRAM2      .copyLDM    629.66 MB/s     3.15 B/cyc     626.06 MB/s     3.13 B/cyc     626.06 MB/s     3.13 B/cyc
+FLASH_AXIM .read32     123.02 MB/s     0.62 B/cyc     193.86 MB/s     0.97 B/cyc     193.86 MB/s     0.97 B/cyc
+SDRAM      .read32      59.70 MB/s     0.30 B/cyc      59.71 MB/s     0.30 B/cyc      59.70 MB/s     0.30 B/cyc
+SDRAM      .write32    194.55 MB/s     0.97 B/cyc     194.55 MB/s     0.97 B/cyc     194.47 MB/s     0.97 B/cyc
+SDRAM      .copyLDM     81.45 MB/s     0.41 B/cyc      81.46 MB/s     0.41 B/cyc      81.46 MB/s     0.41 B/cyc
+ITCM       .read32     226.17 MB/s     1.13 B/cyc     226.17 MB/s     1.13 B/cyc     226.17 MB/s     1.13 B/cyc
+ITCM       .write32    263.91 MB/s     1.32 B/cyc     263.91 MB/s     1.32 B/cyc     263.91 MB/s     1.32 B/cyc
+ITCM       .copyLDM   1325.56 MB/s     6.63 B/cyc    1325.56 MB/s     6.63 B/cyc    1325.56 MB/s     6.63 B/cyc
+DTCM       .read32     228.26 MB/s     1.14 B/cyc     228.26 MB/s     1.14 B/cyc     228.26 MB/s     1.14 B/cyc
+DTCM       .write32    707.96 MB/s     3.54 B/cyc     707.96 MB/s     3.54 B/cyc     707.96 MB/s     3.54 B/cyc
+DTCM       .copyLDM   1409.37 MB/s     7.05 B/cyc    1409.37 MB/s     7.05 B/cyc    1409.37 MB/s     7.05 B/cyc
+
+ITCM/DTCM은 코어 직결(TCM 인터페이스)이라 D-cache 대상이 아니다.
+위 표에서 세 열의 값이 사실상 같으면 그 사실이 실측으로 확인된 것이다.
+
+================================================================
+== 5. 캐시 크기·계층 실측 (워킹셋 스윕)
+================================================================
+SRAM1에서 워킹셋을 2배씩 키우며 순차 읽기 대역폭을 잰다 (정상 상태, 워밍업 후).
+D-cache가 4KB라면 4KB를 넘는 순간 계단이 나타난다. OFF 열은 대조군이라 평탄해야 한다.
+
+워킹셋      D-cache OFF                D-cache WB                 WB/OFF 배율
+--------------------------------------------------------------------------------
+   1 KB       160.87 MB/s     0.80 B/cyc     233.25 MB/s     1.17 B/cyc   x1.44
+   2 KB       163.51 MB/s     0.82 B/cyc     235.13 MB/s     1.18 B/cyc   x1.43
+   4 KB       164.86 MB/s     0.82 B/cyc     235.67 MB/s     1.18 B/cyc   x1.42
+   8 KB       165.54 MB/s     0.83 B/cyc     221.94 MB/s     1.11 B/cyc   x1.34
+  16 KB       165.88 MB/s     0.83 B/cyc     217.20 MB/s     1.09 B/cyc   x1.30
+  32 KB       166.06 MB/s     0.83 B/cyc     215.36 MB/s     1.08 B/cyc   x1.29
+  64 KB       166.14 MB/s     0.83 B/cyc     214.34 MB/s     1.07 B/cyc   x1.29
+
+[포인터 체이싱 레이턴시] 32B(캐시라인) 간격 노드를 Sattolo 셔플로 단일 순환 연결하고
+p = *(void**)p 를 반복한다. 순서를 섞었으므로 스트라이드 예측/프리페치가 개입하지 못한다.
+값은 접근 1회당 사이클 (로드 의존 사슬의 실효 레이턴시)이다.
+
+워킹셋      SRAM1 OFF    SRAM1 WB     SDRAM OFF    SDRAM WB
+------------------------------------------------------------
+   1 KB       8.00        2.00       21.13       21.12
+   2 KB       8.00        2.00       24.48       24.48
+   4 KB       8.00        2.09       25.04       25.04
+   8 KB       8.00        7.11       25.67       25.66
+  16 KB       8.00        8.10       25.93       25.92
+  32 KB       8.00        8.53       26.01       26.00
+  64 KB       8.00        8.74       26.06       26.06
+ 128 KB         -            -          26.09       26.09
+ 256 KB         -            -          26.11       26.10
+ 512 KB         -            -          26.11       26.11
+
+[캐시라인 크기 실측] 스트라이드를 키우며 접근당 사이클을 잰다 (D-cache WB, 워킹셋 32KB).
+스트라이드가 라인 크기에 도달하면 접근마다 새 라인을 끌어오므로 값이 평탄해진다.
+
+stride     SRAM1                   SDRAM
+------------------------------------------------
+   4 B        2.89 cyc/접근          14.18 cyc/접근
+   8 B        3.76 cyc/접근          18.26 cyc/접근
+  16 B        6.51 cyc/접근          18.39 cyc/접근
+  32 B        9.03 cyc/접근          18.63 cyc/접근
+  64 B        9.06 cyc/접근          19.17 cyc/접근
+ 128 B        9.12 cyc/접근          20.23 cyc/접근
+
+================================================================
+== 6. 플래시 접근 특성 (AXIM 별칭 vs ITCM 별칭, ART ON/OFF)
+================================================================
+측정 루프는 .itcm_code 섹션에 올려 ITCM에서 실행한다. 그래야 ART/캐시를 꺼도
+코드 페치 경로가 흔들리지 않고 데이터 접근만 순수하게 측정된다.
+워킹셋 64 KB. FLASH_AXIM=0x08000000, FLASH_ITCM=0x00200000 (같은 물리 플래시의 다른 경로)
+
+경로         D-cache  ART    순차읽기                              4KB 스트라이드
+--------------------------------------------------------------------------------
+AXIM         OFF      ON        159.96 MB/s     0.80 B/cyc     14.34 cyc/접근
+AXIM         OFF      OFF       159.96 MB/s     0.80 B/cyc     14.34 cyc/접근
+AXIM         WB       ON        304.82 MB/s     1.52 B/cyc     14.34 cyc/접근
+ITCM         OFF      ON        492.10 MB/s     2.46 B/cyc      9.13 cyc/접근
+ITCM         OFF      OFF       336.79 MB/s     1.68 B/cyc      9.13 cyc/접근
+ITCM         WB       ON        492.10 MB/s     2.46 B/cyc      9.13 cyc/접근
+
+ART(ARTEN+PRFTEN)는 ITCM 경로의 명령/데이터 페치를 가속하는 장치다. AXIM 경로는
+ART가 아니라 D-cache와 프리페치 큐가 담당한다. 위 표에서 각 경로가 무엇에 반응하는지
+직접 읽어낼 수 있다.
+
+================================================================
+== 7. 외부 메모리 (SDRAM / QSPI)
+================================================================
+[SDRAM] 보드 실장 SDRAM (FMC SDRAM bank1, 0xC0000000, 실측 8MB/16bit/CL2/100MHz)
+  D$OFF read32      59.71 MB/s     0.30 B/cyc
+  D$OFF write32    194.47 MB/s     0.97 B/cyc
+  D$OFF copyLDM     81.45 MB/s     0.41 B/cyc  (읽기+쓰기 합산)
+  D$WB  read32      59.70 MB/s     0.30 B/cyc
+  D$WB  write32    194.47 MB/s     0.97 B/cyc
+  D$WB  copyLDM     81.46 MB/s     0.41 B/cyc  (읽기+쓰기 합산)
+
+[QSPI] 보드 실장 QSPI NOR, JEDEC ID 0xEF4018 = Winbond 16MB (0x90000000, 메모리맵 읽기 전용)
+  D$OFF read32           49.97 MB/s     0.25 B/cyc
+  D$OFF 64KB 스트라이드   94.22 cyc/접근 (랜덤 접근 근사)
+  D$WB  read32           49.97 MB/s     0.25 B/cyc
+  D$WB  64KB 스트라이드  197.54 cyc/접근
+
+================================================================
+== 8. 정렬 페널티 (32비트 로드)
+================================================================
+모두 64B 간격으로 접근해 접근당 라인 상황을 같게 맞췄다 (D-cache WB, 워킹셋 64KB).
+
+정렬 조건                   SRAM1                   SDRAM
+------------------------------------------------------------
+4B 정렬 (라인 내부)      9.03 cyc/접근      19.15 cyc/접근
